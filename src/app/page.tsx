@@ -11,7 +11,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSwipeable } from "react-swipeable";
 import { GoDot } from "react-icons/go";
 import Link from "next/link";
@@ -141,39 +141,39 @@ export default function Home() {
 
 function StreamlineComplains() {
 	const [currentIndex, setCurrentIndex] = useState(1);
-	const [direction, setDirection] = useState<"left" | "right">("right");
+	// const [direction, setDirection] = useState<"left" | "right">("right");
 
 	function handlePrev() {
-		setDirection("left");
+		// setDirection("left");
 		setCurrentIndex((prevIndex) =>
 			prevIndex === 0 ? complaintSlideObj.length - 1 : prevIndex - 1
 		);
 	}
 
 	function handleNext() {
-		setDirection("right");
+		// setDirection("right");
 		setCurrentIndex((nextIndex) =>
 			nextIndex === complaintSlideObj.length - 1 ? 0 : nextIndex + 1
 		);
 	}
 
 	// Animation variants
-	const variants = {
-		enter: (direction: "left" | "right") => ({
-			x: direction === "right" ? 200 : -200,
-			opacity: 0,
-		}),
-		center: {
-			x: 0,
-			opacity: 1,
-			transition: { duration: 0.5 },
-		},
-		exit: (direction: "left" | "right") => ({
-			x: direction === "right" ? -200 : 200,
-			opacity: 0,
-			transition: { duration: 0.5 },
-		}),
-	};
+	// const variants = {
+	// 	enter: (direction: "left" | "right") => ({
+	// 		x: direction === "right" ? 200 : -200,
+	// 		opacity: 0,
+	// 	}),
+	// 	center: {
+	// 		x: 0,
+	// 		opacity: 1,
+	// 		transition: { duration: 0.5 },
+	// 	},
+	// 	exit: (direction: "left" | "right") => ({
+	// 		x: direction === "right" ? -200 : 200,
+	// 		opacity: 0,
+	// 		transition: { duration: 0.5 },
+	// 	}),
+	// };
 
 	const handlers = useSwipeable({
 		onSwipedLeft: () => handleNext(),
@@ -185,7 +185,7 @@ function StreamlineComplains() {
 	return (
 		<section
 			id="streamline-complains"
-			className="h-screen bg-ring text-background flex flex-col justify-center px-10 md:px-20overflow-hidden">
+			className="h-screen bg-ring text-background flex flex-col justify-center px-10 md:px-20 overflow-hidden">
 			<div className="grid grid-col-1 md:grid-cols-2 items-center gap-6">
 				{/* LEFT IMAGE SLIDE SECTION */}
 				<div
