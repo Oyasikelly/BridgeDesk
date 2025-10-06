@@ -17,6 +17,7 @@ import {
 	SlideInLeftWhenVisible,
 	SlideInRightWhenVisible,
 } from "./animations/slideInAnimations";
+import { services } from "@/data/services";
 
 export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
@@ -28,8 +29,8 @@ export default function Header() {
 				<div
 					className={`${
 						isOpen === true ? "text-primary" : "text-background"
-					} text-2xl md:text-3xl font-bold`}>
-					BridgeDesk<span className="text-primary">.</span>
+					} text-2xl md:text-3xl font-bold dark:text-primary`}>
+					BridgeDesk<span className="text-primary dark:text-foreground">.</span>
 				</div>
 			</SlideInLeftWhenVisible>
 
@@ -37,12 +38,12 @@ export default function Header() {
 			<SlideInLeftWhenVisible>
 				<nav className="hidden md:flex items-center gap-8 text-primary font-semibold text-sm md:text-base">
 					<Link
-						href="#"
+						href="/"
 						className="hover:text-primary/70 transition-colors duration-300">
 						Home
 					</Link>
 					<Link
-						href="#"
+						href="/about-us"
 						className="hover:text-primary/70 transition-colors duration-300">
 						About Us
 					</Link>
@@ -56,27 +57,15 @@ export default function Header() {
 								</NavigationMenuTrigger>
 								<NavigationMenuContent className="p-4 bg-background/80 rounded-xl shadow-lg backdrop-blur-md">
 									<ul className="flex flex-col gap-2 min-w-[200px]">
-										<li>
-											<Link
-												href="#solar"
-												className="block hover:text-foreground/70">
-												Solar Installation
-											</Link>
-										</li>
-										<li>
-											<Link
-												href="#maintenance"
-												className="block hover:text-foreground/70">
-												Maintenance
-											</Link>
-										</li>
-										<li>
-											<Link
-												href="#training"
-												className="block hover:text-foreground/70">
-												Training Services
-											</Link>
-										</li>
+										{services.map((service) => (
+											<li key={service.title}>
+												<Link
+													href={`/services/${service.url}`}
+													className="block hover:text-foreground/70">
+													{service.title}
+												</Link>
+											</li>
+										))}
 									</ul>
 								</NavigationMenuContent>
 							</NavigationMenuItem>
@@ -118,12 +107,12 @@ export default function Header() {
 						: "opacity-0 -translate-y-4 pointer-events-none"
 				}`}>
 				<Link
-					href="#"
+					href="/"
 					className="font-semibold hover:text-primary transition-colors duration-300">
 					Home
 				</Link>
 				<Link
-					href="#"
+					href="/about-us"
 					className="font-semibold hover:text-primary transition-colors duration-300">
 					About Us
 				</Link>
@@ -135,27 +124,15 @@ export default function Header() {
 							</NavigationMenuTrigger>
 							<NavigationMenuContent className="p-4 bg-background/80 rounded-xl shadow-lg backdrop-blur-md">
 								<ul className="flex flex-col gap-2 min-w-[200px]">
-									<li>
-										<Link
-											href="#solar"
-											className="block hover:text-foreground/70">
-											Solar Installation
-										</Link>
-									</li>
-									<li>
-										<Link
-											href="#maintenance"
-											className="block hover:text-foreground/70">
-											Maintenance
-										</Link>
-									</li>
-									<li>
-										<Link
-											href="#training"
-											className="block hover:text-foreground/70">
-											Training Services
-										</Link>
-									</li>
+									{services.map((service) => (
+										<li key={service.title}>
+											<Link
+												href={service.url}
+												className="block hover:text-foreground/70">
+												{service.title}
+											</Link>
+										</li>
+									))}
 								</ul>
 							</NavigationMenuContent>
 						</NavigationMenuItem>

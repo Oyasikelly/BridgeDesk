@@ -182,6 +182,13 @@ function StreamlineComplains() {
 		trackMouse: true, // allows dragging on desktop too
 	});
 
+	interface ComplaintSlide {
+		id: number;
+		title: string;
+		description?: string;
+		image?: string;
+		// add other properties if available
+	}
 	return (
 		<section
 			id="streamline-complains"
@@ -230,7 +237,7 @@ function StreamlineComplains() {
 						<div className="flex justify-between items-center mt-6">
 							{/* DOTS */}
 							<div className="flex gap-2">
-								{complaintSlideObj.map((_: any, index: number) => (
+								{complaintSlideObj.map((_, index) => (
 									<motion.div
 										key={index}
 										animate={{
