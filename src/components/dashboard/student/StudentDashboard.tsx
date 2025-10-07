@@ -12,7 +12,7 @@ export default function StudentDashboard() {
 					</div>
 
 					<div className="space-y-6 ">
-						<div className="p-4 bg-foreground dark:bg-primary-foreground rounded-xl shadow">
+						<div className="p-4 bg-background dark:bg-primary-foreground rounded-xl shadow">
 							<h2 className="font-semibold mb-3">Advanced Statistic</h2>
 							<div className="space-y-3 text-sm text-foreground/60">
 								<div className="flex justify-between items-center">
@@ -26,7 +26,7 @@ export default function StudentDashboard() {
 							</div>
 						</div>
 
-						<div className="p-4 bg-foreground dark:bg-primary-foreground rounded-xl shadow">
+						<div className="p-4 bg-background dark:bg-primary-foreground rounded-xl shadow">
 							<h2 className="font-semibold mb-3">By Country</h2>
 							<p className="text-sm text-foreground/60">50% in Borcelle</p>
 							<p className="text-sm text-foreground/60">50% in Fauget</p>

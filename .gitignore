@@ -1,8 +1,15 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
-/node_modules
-/.pnp
+# ============================================
+# 🧩 GENERAL NODE / JAVASCRIPT
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.pnpm-debug.log*
+package-lock.json
+yarn.lock
+.pnp
 .pnp.*
 .yarn/*
 !.yarn/patches
@@ -10,32 +17,156 @@
 !.yarn/releases
 !.yarn/versions
 
-# testing
-/coverage
+# ============================================
+# ⚡ NEXT.JS / REACT / VITE / BUILD OUTPUTS
+# ============================================
+.next/
+out/
+build/
+dist/
+.cache/
+coverage/
+public/build/
+.vite/
 
-# next.js
-/.next/
-/out/
+# ============================================
+# 🧱 PRISMA / SUPABASE / DATABASE
+# ============================================
+/prisma/dev.db
+/prisma/test.db
+/prisma/migrations/
+src/generated/prisma
+*.db-journal
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+supabase/.temp/
+supabase/.branches/
+supabase/functions/.env
+supabase/config.toml
+supabase/migrations/
 
-# production
-/build
+# ============================================
+# 🌍 ENVIRONMENT FILES
+# ============================================
+.env
+.env.*
+!.env.example
+!.env.local.example
+.env.development.local
+.env.test.local
+.env.production.local
 
-# misc
+# ============================================
+# 🧰 LOGS / TEMP / CACHE
+# ============================================
+*.log
+logs
+*.pid
+*.seed
+*.pid.lock
+temp/
+tmp/
+.cache/
+*.swp
+*.swo
+
+# ============================================
+# 🧪 TESTING / COVERAGE
+# ============================================
+coverage/
+.nyc_output/
+jest-cache/
+jest-dist/
+cypress/screenshots/
+cypress/videos/
+playwright-report/
+test-results/
+
+# ============================================
+# 🧠 IDE / EDITOR FILES
+# ============================================
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+.history/
+*.iml
+
+# ============================================
+# 💾 SYSTEM FILES (MAC, WINDOWS, LINUX)
+# ============================================
 .DS_Store
-*.pem
+.AppleDouble
+.LSOverride
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.Trashes
+.nfs*
 
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
+# ============================================
+# 🐳 DOCKER / DEPLOYMENT / SERVER
+# ============================================
+docker-compose.override.yml
+.docker/
+docker/
+*.tar
+*.gz
+*.tgz
 .vercel
+.netlify
+firebase-debug.log
+firebase.json
+functions/lib/
+functions/node_modules/
+serverless/
+.now/
 
-# typescript
+# ============================================
+# ⚙️ TYPESCRIPT
+# ============================================
 *.tsbuildinfo
 next-env.d.ts
+tsconfig.tsbuildinfo
+types/generated/
+types.d.ts
+
+# ============================================
+# 🧾 DOCUMENTATION / DESIGN FILES
+# ============================================
+*.docx
+*.pdf
+*.xlsx
+*.pptx
+*.psd
+*.ai
+*.sketch
+*.fig
+
+# ============================================
+# 🔐 CERTIFICATES / PRIVATE KEYS
+# ============================================
+*.pem
+*.crt
+*.key
+*.csr
+*.p12
+
+# ============================================
+# 📦 OTHER MISC
+# ============================================
+tmp/
+cache/
+notes/
+todo.txt
+*.bak
+*.orig
+*.rej
+*.sw?
+*.tgz
+*.tar.gz
+*.zip

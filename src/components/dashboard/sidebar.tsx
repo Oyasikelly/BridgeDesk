@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 type UserRole = "student" | "admin";
 
@@ -64,6 +65,7 @@ export function Sidebar() {
 	}, []);
 
 	const activeLinks = role === "admin" ? adminLinks : studentLinks;
+	const pathname = usePathname();
 
 	return (
 		<aside className="bg-foreground dark:bg-background text-background/90 w-64 min-h-screen flex flex-col justify-between p-4">
@@ -95,7 +97,9 @@ export function Sidebar() {
 							<Button
 								key={label}
 								variant="ghost"
-								className="w-full justify-start text-white hover:bg-primary transition">
+								className={`${
+									pathname === url ? "bg-primary" : ""
+								} w-full justify-start text-white hover:bg-primary transition`}>
 								<Icon className="mr-2 h-5 w-5" /> {label}
 							</Button>
 						</Link>

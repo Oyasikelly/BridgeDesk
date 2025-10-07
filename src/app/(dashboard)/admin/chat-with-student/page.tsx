@@ -1,6 +1,5 @@
 import { Metadata } from "next";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
-import AdminSettingsPage from "@/components/dashboard/admin/settings";
 import AdminChatPage from "@/components/dashboard/admin/chat-with-student";
 
 export const metadata: Metadata = {
