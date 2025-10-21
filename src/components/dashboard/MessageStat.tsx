@@ -1,15 +1,12 @@
 "use client";
 
+import { MessageStatus } from "@prisma/client";
 import { Check, CheckCheck } from "lucide-react";
 
-export default function MessageStatus({
-	status,
-}: {
-	status: "sent" | "delivered" | "read";
-}) {
+export default function MessageStat({ status }: { status: MessageStatus }) {
 	// Choose icons and colors depending on message status
 	switch (status) {
-		case "sent":
+		case "SENT":
 			return (
 				<Check
 					size={14}
@@ -18,7 +15,7 @@ export default function MessageStatus({
 				/>
 			);
 
-		case "delivered":
+		case "RECEIVED":
 			return (
 				<CheckCheck
 					size={14}
@@ -27,7 +24,7 @@ export default function MessageStatus({
 				/>
 			);
 
-		case "read":
+		case "READ":
 			return (
 				<CheckCheck
 					size={14}

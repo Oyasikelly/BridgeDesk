@@ -151,9 +151,11 @@ export default function Header() {
 				{/* Bottom Actions */}
 				<div className="flex items-center justify-between w-full mt-3">
 					<ModeToggle />
-					<Button className="bg-primary text-background hover:bg-primary/90 transition-all duration-300">
-						Sign Up
-					</Button>
+					<Link href="/register">
+						<Button className="bg-primary text-background hover:bg-primary/90 transition-all duration-300">
+							Sign Up
+						</Button>
+					</Link>
 				</div>
 			</div>
 		</header>

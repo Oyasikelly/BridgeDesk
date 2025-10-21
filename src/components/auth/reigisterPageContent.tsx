@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-// import { useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,8 +18,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GraduationCap, BarChart3 } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ui/toggleMode-switch";
-// import { registerUser } from "@/lib/auth";
-// import { useAuth } from "@/context/AuthContext";
+import { registerUser } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 import toast from "react-hot-toast";
 import {
 	Select,
@@ -36,15 +36,15 @@ export const metadata: Metadata = {
 };
 
 export default function RegisterPageContent() {
-	// const router = useRouter();
-	// const { user, logout } = useAuth();
+	const router = useRouter();
+	const { user, logout } = useAuth();
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
 		password: "",
 		confirmPassword: "",
-		role: "student",
-		schoolId: "",
+		role: "STUDENT",
+		organizationId: "",
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
@@ -65,19 +65,19 @@ export default function RegisterPageContent() {
 		const fetchschools = async () => {
 			try {
 				setLoadingOrgs(true);
-				const response = await fetch("/api/schools");
+				const response = await fetch("/api/organizations");
 
 				if (!response.ok) {
-					throw new Error("Failed to fetch schools");
+					throw new Error("Failed to fetch organizations");
 				}
 
 				const data = await response.json();
-				setschools(data.schools);
+				setschools(data.organizations);
 
 				// Don't auto-select - user must choose
 			} catch (error) {
-				console.error("Error fetching schools:", error);
-				toast.error("Failed to load schools. Please try again.");
+				console.error("Error fetching organizations:", error);
+				toast.error("Failed to load organizations. Please try again.");
 			} finally {
 				setLoadingOrgs(false);
 			}
@@ -86,11 +86,6 @@ export default function RegisterPageContent() {
 		fetchschools();
 	}, []);
 
-	// const handleLogout = async () => {
-	// 	await logout();
-	// 	toast.success("Logged out. You can now register a new account.");
-	// };
-
 	const handleInputChange = (
 		field:
 			| "name"
@@ -98,7 +93,7 @@ export default function RegisterPageContent() {
 			| "password"
 			| "confirmPassword"
 			| "role"
-			| "schoolId",
+			| "organizationId",
 		value: string
 	) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
@@ -129,48 +124,52 @@ export default function RegisterPageContent() {
 			toast.error("Passwords do not match");
 			return false;
 		}
-		if (!formData.schoolId) {
+		if (!formData.organizationId) {
 			toast.error("Please select an school");
 			return false;
 		}
 		return true;
 	};
 
-	// const handleSubmit = async (e: React.FormEvent) => {
-	// 	e.preventDefault();
-	// 	if (!validateForm()) return;
-	// 	setIsLoading(true);
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!validateForm()) return;
+		setIsLoading(true);
 
-	// 	try {
-	// 		const response = await registerUser({
-	// 			name: formData.name,
-	// 			email: formData.email,
-	// 			password: formData.password,
-	// 			role: formData.role as "student" | "admin",
-	// 			schoolId: formData.schoolId,
-	// 		});
+		try {
+			const response = await registerUser({
+				name: formData.name,
+				email: formData.email,
+				password: formData.password,
+				role: formData.role as "STUDENT" | "ADMIN",
+				organizationId: formData.organizationId,
+			});
 
-	// 		// Show success message about email confirmation
-	// 		toast.success(
-	// 			response.message ||
-	// 				"Registration successful! Please check your email to confirm your account."
-	// 		);
+			// Show success message about email confirmation
+			toast.success(
+				response.message ||
+					"Registration successful! Please check your email to confirm your account."
+			);
 
-	// 		// Redirect to login page with confirmation message
-	// 		router.push(
-	// 			"/login?message=Please check your email to confirm your account before logging in."
-	// 		);
-	// 	} catch (err: unknown) {
-	// 		const errorMessage =
-	// 			err instanceof Error
-	// 				? err.message
-	// 				: "Registration failed. Please try again.";
-	// 		toast.error(errorMessage);
-	// 	} finally {
-	// 		setIsLoading(false);
-	// 	}
-	// };
+			// Redirect to login page with confirmation message
+			router.push(
+				"/login?message=Please check your email to confirm your account before logging in."
+			);
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error
+					? err.message
+					: "Registration failed. Please try again.";
+			toast.error(errorMessage);
+		} finally {
+			setIsLoading(false);
+		}
+	};
 
+	const handleLogout = async () => {
+		await logout();
+		toast.success("Logged out. You can now register a new account.");
+	};
 	return (
 		<ThemeProvider>
 			<div className="min-h-screen bg-background">
@@ -213,7 +212,7 @@ export default function RegisterPageContent() {
 						</div>
 
 						{/* Notice for logged-in users */}
-						{/* {user && (
+						{user && (
 							<div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
 								<div className="flex items-center justify-between">
 									<div className="flex-1">
@@ -234,7 +233,7 @@ export default function RegisterPageContent() {
 									</Button>
 								</div>
 							</div>
-						)} */}
+						)}
 
 						{/* Register Form */}
 						<Card>
@@ -252,13 +251,13 @@ export default function RegisterPageContent() {
 									className="w-full">
 									<TabsList className="grid w-full grid-cols-2">
 										<TabsTrigger
-											value="student"
+											value="STUDENT"
 											className="flex items-center gap-2">
 											<GraduationCap className="w-4 h-4" />
 											Student
 										</TabsTrigger>
 										<TabsTrigger
-											value="admin"
+											value="ADMIN"
 											className="flex items-center gap-2">
 											<BarChart3 className="w-4 h-4" />
 											Admin
@@ -268,7 +267,7 @@ export default function RegisterPageContent() {
 
 								{/* Register Form */}
 								<form
-									// onSubmit={handleSubmit}
+									onSubmit={handleSubmit}
 									className="space-y-4">
 									<div className="space-y-2">
 										<Label htmlFor="name">Full Name</Label>
@@ -301,9 +300,9 @@ export default function RegisterPageContent() {
 									<div className="space-y-2">
 										<Label htmlFor="school">School</Label>
 										<Select
-											value={formData.schoolId}
+											value={formData.organizationId}
 											onValueChange={(value) =>
-												handleInputChange("schoolId", value)
+												handleInputChange("organizationId", value)
 											}
 											disabled={isLoading || loadingOrgs}>
 											<SelectTrigger>

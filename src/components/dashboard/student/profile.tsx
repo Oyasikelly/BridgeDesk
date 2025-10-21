@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/context/userContext";
 import {
 	Camera,
 	Edit,
@@ -17,16 +18,17 @@ import {
 
 export default function StudentProfilePage() {
 	const [editing, setEditing] = useState(false);
+	const { userData } = useUser();
 	const [profile, setProfile] = useState({
-		fullName: "Kelly Bright",
-		matricNo: "FUPRE/EE/20/1023",
-		department: "Electrical & Electronics Engineering",
-		level: "500 Level",
-		email: "kellybright@student.fupre.edu.ng",
-		phone: "+234 803 555 2812",
-		hostel: "Hall B - Room 204",
-		dateJoined: "September 2020",
-		avatar: "/student-avatar.jpg",
+		fullName: userData?.student?.fullName || "N/A",
+		matricNo: userData?.student?.matricNo || "N/A",
+		department: userData?.student?.department || "N/A",
+		level: userData?.student?.level || "N/A",
+		email: userData?.student?.email || "N/A",
+		phone: userData?.student?.phone || "N/A",
+		hostel: userData?.student?.hostel || "N/A",
+		joinedDate: userData?.student?.joinedDate || "N/A",
+		avatar: userData?.student?.avatarUrl || "/assets/default-avatar.jpg",
 	});
 
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,7 +56,7 @@ export default function StudentProfilePage() {
 								{profile.fullName}
 							</CardTitle>
 							<p className="text-gray-500">{profile.department}</p>
-							<p className="text-gray-500">{profile.level}</p>
+							<p className="text-gray-500">{profile.level} Level</p>
 						</div>
 					</div>
 
@@ -154,7 +156,17 @@ export default function StudentProfilePage() {
 								<Calendar size={16} /> Joined
 							</label>
 							<p className="font-medium text-foreground/80">
-								{profile.dateJoined}
+								{(() => {
+									const date = new Date(profile.joinedDate);
+									return date.toLocaleString("en-US", {
+										year: "numeric",
+										month: "long",
+										day: "numeric",
+										hour: "numeric",
+										minute: "2-digit",
+										hour12: true,
+									});
+								})()}
 							</p>
 						</div>
 					</div>

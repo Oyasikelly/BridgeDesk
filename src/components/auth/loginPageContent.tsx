@@ -14,14 +14,14 @@ import {
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ui/toggleMode-switch";
 import { BookOpen, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
-// import { loginUser } from '@/lib/auth';
-// import { useAuth } from '@/context/AuthContext';
+import { loginUser } from "@/lib/auth";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
 import { FaChevronLeft } from "react-icons/fa";
 
 export default function LoginPageContent() {
-	//   const { setUser } = useAuth();
+	const { setUser } = useAuth();
 	const searchParams = useSearchParams();
 	// const [activeTab, setActiveTab] = useState<"student" | "teacher">("student");
 	const [isLoading, setIsLoading] = useState(false);
@@ -71,13 +71,12 @@ export default function LoginPageContent() {
 
 		try {
 			// STRICT ROLE VALIDATION: Only allow login if selected role matches user's actual role
-			//   const response = await loginUser({
-			//     email: formData.email,
-			//     password: formData.password,
-			//     role: activeTab, // Send the selected role
-			//   });
-			//   setUser(response.user);
-			//   toast.success(`Welcome back, ${response.user.name}!`);
+			const response = await loginUser({
+				email: formData.email,
+				password: formData.password,
+			});
+			setUser(response.user);
+			toast.success(`Welcome back, ${response.user.name}!`);
 			// The redirect will be handled automatically by AuthContext
 		} catch (err: unknown) {
 			const errorMessage =
@@ -122,11 +121,6 @@ export default function LoginPageContent() {
 					<div className="w-full max-w-md space-y-8">
 						{/* Welcome Section */}
 						<div className="text-center space-y-4">
-							{/* <div className="flex justify-center">
-                <div className="bg-primary rounded-full p-3">
-                  <Shield className="w-8 h-8 text-primary-foreground" />
-                </div>
-              </div> */}
 							<div>
 								<h2 className="text-3xl font-bold tracking-tight">
 									Welcome back
@@ -218,38 +212,6 @@ export default function LoginPageContent() {
 										)}
 									</Button>
 								</form>
-
-								{/* Demo Login Buttons */}
-								{/* <div className="space-y-3">
-                  <div className="relative">
-                    <div className="absolute inset-0 flex items-center">
-                      <span className="w-full border-t" />
-                    </div>
-                    <div className="relative flex justify-center text-xs uppercase">
-                      <span className="bg-background px-2 text-muted-foreground">
-                        Or try demo
-                      </span>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleDemoLogin('student')}
-                      disabled={isLoading}
-                      className="text-sm"
-                    >
-                      Demo Student
-                    </Button>
-                    <Button
-                      variant="outline"
-                      onClick={() => handleDemoLogin('teacher')}
-                      disabled={isLoading}
-                      className="text-sm"
-                    >
-                      Demo Teacher
-                    </Button>
-                  </div>
-                </div> */}
 
 								{/* Sign Up Link */}
 								<div className="text-center text-sm">

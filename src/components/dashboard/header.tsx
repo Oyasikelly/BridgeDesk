@@ -7,10 +7,10 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Sidebar } from "./sidebar";
-
+import { useUser } from "@/context/userContext";
 export function Header({ pageTitle }: { pageTitle: string }) {
 	const [open, setOpen] = useState(false);
-
+	const { userData } = useUser();
 	return (
 		<header className="flex justify-between items-center py-4 px-4 md:px-6 bg-background/80 shadow-sm">
 			{/* Left Section */}
@@ -49,14 +49,32 @@ export function Header({ pageTitle }: { pageTitle: string }) {
 				<div className="flex items-center gap-2">
 					<Avatar>
 						<AvatarImage
-							src="https://i.pravatar.cc/150?img=3"
-							alt="Claudia Alves"
+							src={`${userData?.profileImageUrl}`}
+							alt={`${userData?.name}`}
 						/>
-						<AvatarFallback>CA</AvatarFallback>
+						<AvatarFallback>
+							{userData?.name
+								? userData.name
+										.split(" ") // split name into words
+										.map((word) => word[0]?.toUpperCase()) // take first letter of each
+										.join("") // combine them
+								: "NA"}{" "}
+							{/* default fallback */}
+						</AvatarFallback>
 					</Avatar>
 					<div className="hidden md:block">
-						<p className="text-sm font-semibold">Claudia Alves</p>
-						<p className="text-xs text-gray-500">Administrator</p>
+						<p className="text-sm font-semibold">
+							{userData?.name
+								? userData.name.charAt(0).toUpperCase() +
+								  userData.name.slice(1).toLowerCase()
+								: ""}
+						</p>
+						<p className="text-xs text-gray-500">
+							{userData?.role
+								? userData.role.charAt(0).toUpperCase() +
+								  userData.role.slice(1).toLowerCase()
+								: ""}
+						</p>
 					</div>
 				</div>
 			</div>

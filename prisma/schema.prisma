@@ -7,7 +7,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL") // Supabase connection URL
+  url      = env("DATABASE_URL")
 }
 
 // =========================================
@@ -42,25 +42,91 @@ enum NotificationType {
 //  USER MODELS
 // =========================================
 
-// Admin Model
-model Admin {
-  id                String           @id @default(cuid())
-  fullName          String
-  email             String           @unique
-  username          String           @unique
-  passwordHash      String
-  phone             String?
-  avatarUrl         String?
-  department        String?
-  role              Role             @default(ADMIN)
-  dateJoined        DateTime         @default(now())
-  lastLogin         DateTime?
-  isActive          Boolean          @default(true)
+//User Model
+
+model User {
+  id              String   @id @default(cuid())
+  email           String   @unique
+  password        String
+  name            String?
+  role            Role
+  isActive        Boolean  @default(true)
+  emailVerified   Boolean  @default(false)
+  profileImageUrl String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   // Relations
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+
+  department   Department? @relation(fields: [departmentId], references: [id])
+  departmentId String?
+
+  student Student?
+  admin   Admin?
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  address   String?
+  email     String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  logoUrl  Boolean  @default(true)
+  domain  Boolean  @default(true)
+  slug  Boolean  @default(true)
+  subscriptionPlan  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  departments Department[]
+  users       User[]
+
+  @@map("organizations")
+}
+
+// Departments under the organization
+model Department {
+  id             String   @id @default(cuid())
+  name           String
+  description    String?
+  organizationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  users        User[]
+  complaints   Complaint[]
+
+  @@map("departments")
+}
+
+// Admin Model
+model Admin {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id])
+  fullName     String
+  email        String    @unique
+  username     String    @unique
+  passwordHash String
+  phone        String?
+  avatarUrl    String?
+  department   String?
+  role         Role      @default(ADMIN)
+  dateJoined   DateTime  @default(now())
+  lastLogin    DateTime?
+  isActive     Boolean   @default(true)
+
+  // Relations
+  categories        Category[]
   complaintsHandled Complaint[]
-  messagesSent      ChatMessage[]    @relation("AdminSentMessages")
-  messagesReceived  ChatMessage[]    @relation("AdminReceivedMessages")
+  messagesSent      ChatMessage[]   @relation("AdminSentMessages")
+  messagesReceived  ChatMessage[]   @relation("AdminReceivedMessages")
   activityLogs      ActivityLog[]
   notifications     Notification[]
   analytics         AdminAnalytics?
@@ -68,30 +134,33 @@ model Admin {
   @@map("admins")
 }
 
+
 // Student Model
 model Student {
-  id                String           @id @default(cuid())
-  matricNo          String           @unique
-  fullName          String
-  email             String           @unique
-  phone             String?
-  department        String
-  level             String
-  hostel            String?
-  avatarUrl         String?
-  status            String           @default("Active")
-  joinedDate        DateTime         @default(now())
-  passwordHash      String
-  lastLogin         DateTime?
-  totalComplaints   Int              @default(0)
-  resolvedComplaints Int             @default(0)
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  user               User      @relation(fields: [userId], references: [id])
+  matricNo           String    @unique
+  fullName           String
+  email              String    @unique
+  phone              String?
+  department         String
+  level              String
+  hostel             String?
+  avatarUrl          String?
+  status             String    @default("Active")
+  joinedDate         DateTime  @default(now())
+  passwordHash       String
+  lastLogin          DateTime?
+  totalComplaints    Int       @default(0)
+  resolvedComplaints Int       @default(0)
 
   // Relations
-  complaints        Complaint[]
-  messagesSent      ChatMessage[]    @relation("StudentSentMessages")
-  messagesReceived  ChatMessage[]    @relation("StudentReceivedMessages")
-  activityLogs      ActivityLog[]
-  notifications     Notification[]
+  complaints       Complaint[]
+  messagesSent     ChatMessage[]  @relation("StudentSentMessages")
+  messagesReceived ChatMessage[]  @relation("StudentReceivedMessages")
+  activityLogs     ActivityLog[]
+  notifications    Notification[]
 
   @@map("students")
 }
@@ -100,47 +169,56 @@ model Student {
 //  COMPLAINT MODEL
 // =========================================
 model Complaint {
-  id              String           @id @default(cuid())
-  title           String
-  description     String
-  category        String
-  status          ComplaintStatus  @default(PENDING)
-  resolutionNote  String?
-  feedback        String?
-  dateSubmitted   DateTime         @default(now())
-  dateResolved    DateTime?
-  
+  id             String          @id @default(cuid())
+  title          String
+  description    String
+  status         ComplaintStatus @default(PENDING)
+  resolutionNote String?
+  feedback       String?
+  dateSubmitted  DateTime        @default(now())
+  dateResolved   DateTime?
+
   // Relations
-  student         Student          @relation(fields: [studentId], references: [id])
-  studentId       String
-  assignedAdmin   Admin?           @relation(fields: [adminId], references: [id])
-  adminId         String?
+  category     Category?   @relation(fields: [categoryId], references: [id])
+  categoryId   String?
+  student      Student    @relation(fields: [studentId], references: [id])
+  studentId    String
+  assignedAdmin Admin?     @relation(fields: [adminId], references: [id])
+  adminId      String?
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  chatMessages ChatMessage[]
 
   @@map("complaints")
 }
+
 
 // =========================================
 //  CHAT MESSAGE MODEL
 // =========================================
 model ChatMessage {
-  id            String         @id @default(cuid())
-  message       String
-  attachments   String[]       @default([])
-  timestamp     DateTime       @default(now())
-  status        MessageStatus  @default(SENT)
+  id          String        @id @default(cuid())
+  message     String
+  attachments String[]      @default([])
+  timestamp   DateTime      @default(now())
+  status      MessageStatus @default(SENT)
 
   // Relations
-  senderAdmin   Admin?         @relation("AdminSentMessages", fields: [senderAdminId], references: [id])
+  senderAdmin   Admin?  @relation("AdminSentMessages", fields: [senderAdminId], references: [id])
   senderAdminId String?
 
-  receiverAdmin Admin?         @relation("AdminReceivedMessages", fields: [receiverAdminId], references: [id])
+  receiverAdmin   Admin?  @relation("AdminReceivedMessages", fields: [receiverAdminId], references: [id])
   receiverAdminId String?
 
-  senderStudent   Student?     @relation("StudentSentMessages", fields: [senderStudentId], references: [id])
+  senderStudent   Student? @relation("StudentSentMessages", fields: [senderStudentId], references: [id])
   senderStudentId String?
 
-  receiverStudent Student?     @relation("StudentReceivedMessages", fields: [receiverStudentId], references: [id])
+  receiverStudent   Student? @relation("StudentReceivedMessages", fields: [receiverStudentId], references: [id])
   receiverStudentId String?
+
+  // 🔗 NEW RELATION
+  complaint     Complaint?  @relation(fields: [complaintId], references: [id])
+  complaintId   String?
 
   @@map("chat_messages")
 }
@@ -149,18 +227,18 @@ model ChatMessage {
 //  NOTIFICATION MODEL
 // =========================================
 model Notification {
-  id          String            @id @default(cuid())
-  title       String
-  message     String
-  type        NotificationType  @default(INFO)
-  isRead      Boolean           @default(false)
-  createdAt   DateTime          @default(now())
+  id        String           @id @default(cuid())
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
 
   // Relations
-  admin       Admin?            @relation(fields: [adminId], references: [id])
-  adminId     String?
-  student     Student?          @relation(fields: [studentId], references: [id])
-  studentId   String?
+  admin     Admin?   @relation(fields: [adminId], references: [id])
+  adminId   String?
+  student   Student? @relation(fields: [studentId], references: [id])
+  studentId String?
 
   @@map("notifications")
 }
@@ -169,16 +247,16 @@ model Notification {
 //  ACTIVITY LOG MODEL
 // =========================================
 model ActivityLog {
-  id          String    @id @default(cuid())
-  action      String
-  timestamp   DateTime  @default(now())
-  ipAddress   String?
+  id        String   @id @default(cuid())
+  action    String
+  timestamp DateTime @default(now())
+  ipAddress String?
 
   // Relations
-  admin       Admin?    @relation(fields: [adminId], references: [id])
-  adminId     String?
-  student     Student?  @relation(fields: [studentId], references: [id])
-  studentId   String?
+  admin     Admin?   @relation(fields: [adminId], references: [id])
+  adminId   String?
+  student   Student? @relation(fields: [studentId], references: [id])
+  studentId String?
 
   @@map("activity_logs")
 }
@@ -187,19 +265,38 @@ model ActivityLog {
 //  ADMIN ANALYTICS MODEL
 // =========================================
 model AdminAnalytics {
-  id                  String   @id @default(cuid())
-  totalStudents       Int      @default(0)
-  totalComplaints     Int      @default(0)
-  resolvedComplaints  Int      @default(0)
-  pendingComplaints   Int      @default(0)
-  activeStudents      Int      @default(0)
-  suspendedStudents   Int      @default(0)
-  avgResolutionTime   Float?
-  lastUpdated         DateTime @default(now())
+  id                 String   @id @default(cuid())
+  totalStudents      Int      @default(0)
+  totalComplaints    Int      @default(0)
+  resolvedComplaints Int      @default(0)
+  pendingComplaints  Int      @default(0)
+  activeStudents     Int      @default(0)
+  suspendedStudents  Int      @default(0)
+  avgResolutionTime  Float?
+  lastUpdated        DateTime @default(now())
 
   // Relation
-  adminId             String   @unique
-  admin               Admin    @relation(fields: [adminId], references: [id])
+  adminId String @unique
+  admin   Admin  @relation(fields: [adminId], references: [id])
 
   @@map("admin_analytics")
 }
+
+// =========================================
+//  CATEGORY MODEL
+// =========================================
+model Category {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  admin      Admin?       @relation(fields: [adminId], references: [id])
+  adminId    String?
+  complaints Complaint[]
+
+  @@map("categories")
+}
+

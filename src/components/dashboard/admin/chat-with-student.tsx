@@ -13,15 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import MessageStatus from "../MessageStatus";
-
-type MessageStatusType = "sent" | "delivered" | "read";
+import MessageStat from "../MessageStat";
+import { MessageStatus } from "@prisma/client";
 
 interface Message {
 	from: "student" | "admin";
 	text: string;
 	time: string;
-	status: MessageStatusType;
+	status: MessageStatus;
 }
 
 type Student = {
@@ -67,13 +66,13 @@ const initialMessages: Record<string, Message[]> = {
 			from: "student",
 			text: "Good morning, sir.",
 			time: "9:02 AM",
-			status: "delivered",
+			status: "SENT",
 		},
 		{
 			from: "admin",
 			text: "Good morning, John. How may I help you today?",
 			time: "9:05 AM",
-			status: "sent",
+			status: "SENT",
 		},
 	],
 	STU002: [
@@ -81,7 +80,7 @@ const initialMessages: Record<string, Message[]> = {
 			from: "student",
 			text: "When will my complaint be resolved?",
 			time: "8:35 AM",
-			status: "delivered",
+			status: "RECEIVED",
 		},
 	],
 	STU003: [
@@ -89,13 +88,13 @@ const initialMessages: Record<string, Message[]> = {
 			from: "student",
 			text: "Good afternoon, sir.",
 			time: "2:10 PM",
-			status: "sent",
+			status: "SENT",
 		},
 		{
 			from: "admin",
 			text: "Good afternoon, David!",
 			time: "2:12 PM",
-			status: "read",
+			status: "READ",
 		},
 	],
 };
@@ -119,7 +118,7 @@ export default function AdminChatPage() {
 				hour: "2-digit",
 				minute: "2-digit",
 			}),
-			status: "sent" as const,
+			status: "SENT" as MessageStatus,
 		};
 
 		// ✅ Update chat history for the current student
@@ -238,7 +237,7 @@ export default function AdminChatPage() {
 										</div>
 									</div>
 									<span className="ml-1 inline-flex items-center">
-										<MessageStatus status={msg.status} />
+										<MessageStat status={msg.status} />
 									</span>
 								</>
 							))}

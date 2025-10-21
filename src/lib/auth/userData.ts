@@ -1,101 +1,138 @@
-// import { prisma } from '@/lib/db';
-
+// src/lib/auth/userData.ts
+import { prisma } from "../db";
+import { Role } from "@prisma/client";
 export interface UserData {
 	id: string;
 	email: string;
 	name: string | null;
-	role: "STUDENT" | "TEACHER" | "ADMIN" | "SUPER_ADMIN";
-	profileCompleted: boolean;
+	role: Role;
 	isActive: boolean;
 	emailVerified: boolean;
-	organizationId: string;
-	unitId: string | null;
 	profileImageUrl: string | null;
 	createdAt: Date;
 	updatedAt: Date;
-	// Student-specific fields
+	profileCompleted: boolean;
+	organization: string | null;
+	organizationId: string | null;
+	departmentId: string | null;
+	// Student data
 	student?: {
 		id: string;
-		studentId: string;
-		classYear: string | null;
-		academicLevel: string | null;
-		phoneNumber: string | null;
+		matricNo: string;
+		fullName: string;
+		email: string;
+		phone: string | null;
+		department: string;
+		level: string;
+		hostel: string | null;
+		avatarUrl: string | null;
+		status: string;
+		joinedDate: Date;
+		totalComplaints: number;
+		resolvedComplaints: number;
 	} | null;
-	// Teacher-specific fields
-	teacher?: {
+	// Admin data
+	admin?: {
 		id: string;
-		employeeId: string | null;
+		fullName: string;
+		email: string;
+		username: string;
+		phone: string | null;
 		department: string | null;
-		phoneNumber: string | null;
-	} | null;
-	// Organization data
-	organization?: {
-		id: string;
-		name: string;
+		avatarUrl: string | null;
+		role: Role;
 		isActive: boolean;
-	} | null;
-	// Unit data
-	unit?: {
-		id: string;
-		name: string;
-		description?: string | null;
+		dateJoined: Date;
+		lastLogin: Date | null;
 	} | null;
 }
 
-// export async function fetchCompleteUserData(
-//   userId: string
-// ): Promise<UserData | null> {
-//   try {
-//     const user = await prisma.user.findUnique({
-//       where: { id: userId },
-//       include: {
-//         student: true,
-//         teacher: true,
-//         organization: true,
-//         unit: true,
-//       },
-//     });
+export async function fetchCompleteUserData(
+	userId: string
+): Promise<UserData | null> {
+	try {
+		const user = await prisma.user.findUnique({
+			where: { id: userId },
+			include: {
+				student: true,
+				admin: true,
+				organization: true,
+				department: true,
+			},
+		});
 
-//     if (!user) {
-//       return null;
-//     }
+		if (!user) return null;
 
-//     // Check profile completion based on role
-//     let profileCompleted = false;
+		let profileCompleted = false;
 
-//     if (user.role === 'STUDENT') {
-//       profileCompleted = !!(
-//         user.student?.academicLevel &&
-//         user.student?.classYear &&
-//         user.student?.phoneNumber
-//       );
-//     } else if (user.role === 'TEACHER') {
-//       profileCompleted = !!user.teacher?.employeeId;
-//     } else if (user.role === 'ADMIN' || user.role === 'SUPER_ADMIN') {
-//       // Admins are considered to have complete profiles
-//       profileCompleted = true;
-//     }
+		if (user.role === "STUDENT") {
+			profileCompleted = !!(
+				user.student?.matricNo &&
+				user.student?.department &&
+				user.student?.level &&
+				user.student?.email
+			);
+		} else if (user.role === "ADMIN" || user.role === "SUPER_ADMIN") {
+			profileCompleted = !!(
+				user.admin?.fullName &&
+				user.admin?.department &&
+				user.admin?.email
+			);
+		}
 
-//     return {
-//       id: user.id,
-//       email: user.email,
-//       name: user.name,
-//       role: user.role,
-//       profileCompleted,
-//       isActive: user.isActive,
-//       emailVerified: user.emailVerified,
-//       organizationId: user.organizationId,
-//       unitId: user.unitId,
-//       profileImageUrl: user.profileImageUrl,
-//       createdAt: user.createdAt,
-//       updatedAt: user.updatedAt,
-//       student: user.student,
-//       teacher: user.teacher,
-//       organization: user.organization,
-//       unit: user.unit,
-//     };
-//   } catch (error) {
-//     console.error('Error fetching complete user data:', error);
-//     return null;
-//   }
-// }
+		return {
+			id: user.id,
+			email: user.email,
+			name: user.name,
+			role: user.role,
+			isActive: user.isActive,
+			emailVerified: user.emailVerified,
+			profileImageUrl: user.profileImageUrl,
+			createdAt: user.createdAt,
+			updatedAt: user.updatedAt,
+			profileCompleted,
+			organization: user.organization?.name || null,
+			organizationId: user.organizationId || null,
+			departmentId: user.departmentId || null,
+			student: user.student
+				? {
+						id: user.student.id,
+						matricNo: user.student.matricNo,
+						fullName: user.student.fullName,
+						email: user.student.email,
+						phone: user.student.phone,
+						department: user.student.department,
+						level: user.student.level,
+						hostel: user.student.hostel,
+						avatarUrl: user.student.avatarUrl,
+						status: user.student.status,
+						joinedDate: user.student.joinedDate,
+						totalComplaints: user.student.totalComplaints,
+						resolvedComplaints: user.student.resolvedComplaints,
+				  }
+				: null,
+			admin: user.admin
+				? {
+						id: user.admin.id,
+						fullName: user.admin.fullName,
+						email: user.admin.email,
+						username: user.admin.username,
+						phone: user.admin.phone,
+						department: user.admin.department,
+						avatarUrl: user.admin.avatarUrl,
+						role: user.admin.role,
+						isActive: user.admin.isActive,
+						dateJoined: user.admin.dateJoined,
+						lastLogin: user.admin.lastLogin,
+				  }
+				: null,
+		};
+	} catch (error) {
+		console.error("Error fetching complete user data:", error);
+		return null;
+	}
+}
+
+export function checkProfileCompletion(userData: UserData): boolean {
+	return userData.profileCompleted;
+}
