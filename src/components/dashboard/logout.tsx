@@ -13,7 +13,7 @@ import {
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { LogOut, Shield, User } from "lucide-react";
 import { useRouter } from "next/navigation";
-
+import { useUser } from "@/context/userContext";
 export default function LogoutPage({
 	userType = "student",
 }: {

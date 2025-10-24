@@ -19,6 +19,7 @@ interface UserContextType {
 	refreshUserData: () => Promise<UserData | null>;
 	logout: () => Promise<void>;
 	handlePostLoginRedirection: (userData: UserData) => Promise<void>;
+	setUserData: React.Dispatch<React.SetStateAction<UserData | null>>;
 }
 
 export const UserContext = createContext<UserContextType | undefined>(
@@ -302,6 +303,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 				refreshUserData,
 				logout,
 				handlePostLoginRedirection,
+				setUserData,
 			}}>
 			{children}
 		</UserContext.Provider>

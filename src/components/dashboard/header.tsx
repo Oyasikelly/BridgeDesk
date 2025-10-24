@@ -11,6 +11,7 @@ import { useUser } from "@/context/userContext";
 export function Header({ pageTitle }: { pageTitle: string }) {
 	const [open, setOpen] = useState(false);
 	const { userData } = useUser();
+
 	return (
 		<header className="flex justify-between items-center py-4 px-4 md:px-6 bg-background/80 shadow-sm">
 			{/* Left Section */}
@@ -49,16 +50,29 @@ export function Header({ pageTitle }: { pageTitle: string }) {
 				<div className="flex items-center gap-2">
 					<Avatar>
 						<AvatarImage
-							src={`${userData?.profileImageUrl}`}
-							alt={`${userData?.name}`}
+							src={`${
+								userData?.role === "STUDENT"
+									? userData?.student?.avatarUrl
+									: userData?.admin?.avatarUrl
+							}`}
+							alt={`${
+								userData?.role === "STUDENT"
+									? userData?.student?.fullName
+									: userData?.admin?.fullName
+							}`}
 						/>
 						<AvatarFallback>
-							{userData?.name
-								? userData.name
+							{userData?.role === "STUDENT"
+								? userData?.student?.fullName
+										?.split(" ") // split name into words
+										?.map((word) => word[0]?.toUpperCase()) // take first letter of each
+										?.join("") // combine them
+								: userData?.role === "ADMIN"
+								? userData?.admin?.fullName
 										.split(" ") // split name into words
 										.map((word) => word[0]?.toUpperCase()) // take first letter of each
 										.join("") // combine them
-								: "NA"}{" "}
+								: "N/A"}
 							{/* default fallback */}
 						</AvatarFallback>
 					</Avatar>

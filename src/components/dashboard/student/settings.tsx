@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Bell, Shield, Key, Moon, LogOut } from "lucide-react";
 import { ModeToggle } from "@/components/ui/toggleMode-switch";
 import toast from "react-hot-toast";
+import Link from "next/link";
 
 export default function StudentSettingsPage() {
 	const [notifications, setNotifications] = useState(true);
@@ -218,11 +219,13 @@ export default function StudentSettingsPage() {
 								Log out of your account on this device. You’ll need to log in
 								again to access your complaints or chats.
 							</p>
-							<Button
-								variant="destructive"
-								className="w-full">
-								Log Out
-							</Button>
+							<Link href="/logout">
+								<Button
+									variant="destructive"
+									className="w-full">
+									Log Out
+								</Button>
+							</Link>
 						</CardContent>
 					</Card>
 				</motion.div>

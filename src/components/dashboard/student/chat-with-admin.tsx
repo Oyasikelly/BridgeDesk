@@ -71,7 +71,7 @@ export default function ChatWithAdmin({
 		setLoading(true);
 		try {
 			const res = await fetch(
-				`/api/chat?studentId=${userData.student.id}&adminId=${assignedAdminId}&complaintId=${complaintId}`
+				`/api/student/chat?studentId=${userData.student.id}&adminId=${assignedAdminId}&complaintId=${complaintId}`
 			);
 			const data = await res.json();
 			console.log("Fetched messages:", data);
@@ -153,20 +153,19 @@ export default function ChatWithAdmin({
 			xhr.onload = async () => {
 				if (xhr.status >= 200 && xhr.status < 300) {
 					const data = JSON.parse(xhr.responseText);
-					setMessages((prev) => [
-						...prev,
-						{
-							id: data.message.id,
-							sender: "student",
-							text: data.message.message,
-							time: new Date().toLocaleTimeString([], {
-								hour: "2-digit",
-								minute: "2-digit",
-							}),
-							status: data.message.status,
-							fileUrl: data.message.fileUrl,
-						},
-					]);
+					setMessages((prev) =>
+						prev.map((msg) =>
+							msg.id === newMsg.id
+								? {
+										...msg,
+										id: data.message.id,
+										text: data.message.message,
+										status: data.message.status,
+										fileUrl: data.message.fileUrl,
+								  }
+								: msg
+						)
+					);
 
 					toast.success("Message sent successfully ✅");
 				} else {
