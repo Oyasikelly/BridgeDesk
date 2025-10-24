@@ -13,18 +13,26 @@ import {
 } from "@/components/ui/card";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ui/toggleMode-switch";
-import { BookOpen, Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import {
+	BookOpen,
+	Mail,
+	Lock,
+	Eye,
+	EyeOff,
+	Loader2,
+	ArrowLeft,
+} from "lucide-react";
 import { loginUser } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-hot-toast";
-import { useSearchParams } from "next/navigation";
-import { FaChevronLeft } from "react-icons/fa";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPageContent() {
 	const { setUser } = useAuth();
 	const searchParams = useSearchParams();
 	// const [activeTab, setActiveTab] = useState<"student" | "teacher">("student");
 	const [isLoading, setIsLoading] = useState(false);
+	const Router = useRouter();
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",
@@ -91,7 +99,7 @@ export default function LoginPageContent() {
 
 	return (
 		<ThemeProvider>
-			<div className="min-h-screen bg-background">
+			<div className="min-h-screen bg-background dark:bg-black/95">
 				{/* Header */}
 				<header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 px-2 sm:px-6 lg:px-20">
 					<div className="flex h-16 items-center justify-between w-full max-w-8xl mx-auto">
@@ -107,14 +115,12 @@ export default function LoginPageContent() {
 				</header>
 
 				<div className="px-20 py-4">
-					<Link
-						href="/"
-						className="text-primary hover:underline-md transition-all duration-300">
-						<button className="text-primary group underline-offset-4 hover:underline flex items-center gap-2">
-							<FaChevronLeft className="group-hover:translate-x-2 transition-all duration-300 " />
-							Go to home
-						</button>
-					</Link>
+					<button
+						onClick={() => Router.back()}
+						className="flex items-center gap-2 mb-8 text-sm font-medium hover:text-primary transition">
+						<ArrowLeft className="w-4 h-4" />
+						Back
+					</button>
 				</div>
 				{/* Main Content */}
 				<div className="flex-1 flex items-center justify-center px-4 py-12">

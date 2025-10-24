@@ -1,34 +1,3 @@
-// import { notFound } from "next/navigation";
-// import ComplaintManagement from "../Complaint-Management";
-// import ComplaintTrackingAndStatus from "../Complaint-Tracking-and-Status";
-// import Administrative from "../Administrative";
-// import SystemUtility from "../System-Utility";
-
-// interface Props {
-// 	params: Promise<{ slug: string }>;
-// }
-
-// const serviceComponents: Record<string, React.ComponentType> = {
-// 	"Complaint-Management": ComplaintManagement,
-// 	"Complaint-Tracking-and-Status": ComplaintTrackingAndStatus,
-// 	Administrative: Administrative,
-// 	"System-Utility": SystemUtility,
-// };
-
-// export default async function ServicePage({ params }: Props) {
-// 	const { slug } = await params;
-
-// 	const SelectedService = serviceComponents[slug];
-
-// 	if (!SelectedService) return notFound();
-
-// 	return (
-// 		<main className="min-h-screen w-full">
-// 			<SelectedService />
-// 		</main>
-// 	);
-// }
-
 "use client";
 
 import Image from "next/image";
@@ -82,42 +51,45 @@ export default function ServicePage() {
 			</section>
 
 			{/* INTRODUCTION SECTION */}
-			<section className="py-16 px-6 md:px-16 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
-				<div className="space-y-6">
-					<h2 className="text-3xl md:text-4xl font-bold">
-						{service.heading || "Empowering Solutions, Simplified"}
-					</h2>
-					<p className="text-gray-500 leading-relaxed">
-						{service.description ||
-							"At Prosmith, we provide modern, user-centered solutions that help streamline complaints, improve tracking, and enhance service efficiency. Our team is dedicated to ensuring that your users are satisfied, every step of the way."}
-					</p>
-					<Link
-						href="/register"
-						className="px-5 py-3 bg-primary text-white rounded-md font-medium hover:bg-primary/80 transition-all duration-300">
-						Book a Demo
-					</Link>
-				</div>
-				<div className="grid grid-cols-2 gap-4">
-					{service.gallery?.slice(0, 4).map((img, index) => (
-						<Image
-							key={index}
-							src={img}
-							alt={`${service.title} image ${index}`}
-							width={400}
-							height={400}
-							className="rounded-lg object-cover"
-						/>
-					))}
+
+			<section className="bg-background dark:bg-black text-foreground">
+				<div className="py-16 px-6 md:px-16 max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-10 items-center">
+					<div className="space-y-6">
+						<h2 className="text-3xl md:text-4xl font-bold">
+							{service.heading || "Empowering Solutions, Simplified"}
+						</h2>
+						<p className="text-gray-500 leading-relaxed">
+							{service.description ||
+								"At Prosmith, we provide modern, user-centered solutions that help streamline complaints, improve tracking, and enhance service efficiency. Our team is dedicated to ensuring that your users are satisfied, every step of the way."}
+						</p>
+						<Link
+							href="/register"
+							className="px-5 py-3 bg-primary text-white rounded-md font-medium hover:bg-primary/80 transition-all duration-300">
+							Start today
+						</Link>
+					</div>
+					<div className="grid grid-cols-2 gap-4">
+						{service.gallery?.slice(0, 4).map((img, index) => (
+							<Image
+								key={index}
+								src={img}
+								alt={`${service.title} image ${index}`}
+								width={400}
+								height={400}
+								className="rounded-lg object-cover"
+							/>
+						))}
+					</div>
 				</div>
 			</section>
 
 			{/* FEATURE HIGHLIGHTS */}
-			<section className="py-20 bg-gray-50">
+			<section className="py-20 bg-gray-50 dark:bg-ring text-foreground">
 				<div className="max-w-6xl mx-auto px-6 md:px-12 text-center space-y-8">
 					<h2 className="text-2xl md:text-4xl font-semibold">
 						{service.subheading || "Why Choose Us"}
 					</h2>
-					<p className="text-gray-600 max-w-3xl mx-auto">
+					<p className="text-gray-600 dark:text-foreground max-w-3xl mx-auto">
 						{service.subtext ||
 							"We combine innovation, reliability, and expertise to create complaint management systems that are fast, transparent, and user-friendly."}
 					</p>
@@ -125,7 +97,7 @@ export default function ServicePage() {
 						{service.features?.map((feature, index) => (
 							<div
 								key={index}
-								className="bg-white shadow-md rounded-lg p-6 hover:shadow-xl transition-all duration-300">
+								className="bg-background dark:bg-foreground/50 shadow-md rounded-lg p-6 hover:shadow-xl transition-all duration-300">
 								<h3 className="text-lg font-bold mb-2">{feature.title}</h3>
 								<p className="text-gray-600">{feature.text}</p>
 							</div>

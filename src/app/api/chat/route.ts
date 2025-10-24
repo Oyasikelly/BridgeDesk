@@ -1,216 +1,122 @@
-// import { NextRequest, NextResponse } from "next/server";
-// import { prisma } from "@/lib/db";
-
-// /**
-//  * POST → Send a new chat message (linked to an active complaint)
-//  * GET → Fetch chat messages between a student and an admin
-//  */
-
-// export async function POST(req: NextRequest) {
-// 	try {
-// 		const { message, senderRole, senderId, receiverId } = await req.json();
-
-// 		if (!message || !senderRole || !senderId || !receiverId) {
-// 			return NextResponse.json(
-// 				{ error: "All fields are required" },
-// 				{ status: 400 }
-// 			);
-// 		}
-
-// 		let complaintId: string | null = null;
-
-// 		// === 1️⃣ Find the student's active complaint ===
-// 		if (senderRole === "STUDENT") {
-// 			const activeComplaint = await prisma.complaint.findFirst({
-// 				where: {
-// 					studentId: senderId,
-// 					status: { in: ["PENDING", "IN_PROGRESS", "REJECTED", "RESOLVED"] },
-// 				},
-// 				orderBy: { id: "desc" },
-// 			});
-
-// 			if (!activeComplaint) {
-// 				return NextResponse.json(
-// 					{ error: "You have no active complaint to chat about." },
-// 					{ status: 403 }
-// 				);
-// 			}
-
-// 			complaintId = activeComplaint.id;
-// 		}
-
-// 		// === 2️⃣ For admins, find the student's complaint ===
-// 		else if (senderRole === "ADMIN") {
-// 			const studentComplaint = await prisma.complaint.findFirst({
-// 				where: {
-// 					studentId: receiverId,
-// 					status: { in: ["PENDING", "IN_PROGRESS", "REJECTED", "RESOLVED"] },
-// 				},
-// 				orderBy: { id: "desc" },
-// 			});
-
-// 			if (!studentComplaint) {
-// 				return NextResponse.json(
-// 					{
-// 						error:
-// 							"This student currently has no active complaint to reply to.",
-// 					},
-// 					{ status: 403 }
-// 				);
-// 			}
-
-// 			complaintId = studentComplaint.id;
-// 		} else {
-// 			return NextResponse.json(
-// 				{ error: "Invalid sender role" },
-// 				{ status: 400 }
-// 			);
-// 		}
-
-// 		// === 3️⃣ Create the chat message ===
-// 		const newMessage = await prisma.chatMessage.create({
-// 			data: {
-// 				message,
-// 				status: "SENT",
-// 				complaint: {
-// 					connect: { id: complaintId! },
-// 				},
-// 				...(senderRole === "STUDENT"
-// 					? {
-// 							senderStudentId: senderId,
-// 							receiverAdminId: receiverId,
-// 					  }
-// 					: {
-// 							senderAdminId: senderId,
-// 							receiverStudentId: receiverId,
-// 					  }),
-// 			},
-// 			include: { complaint: true },
-// 		});
-
-// 		return NextResponse.json({ message: newMessage }, { status: 201 });
-// 	} catch (error) {
-// 		console.error("Error sending message:", error);
-// 		return NextResponse.json(
-// 			{ error: "Failed to send message" },
-// 			{ status: 500 }
-// 		);
-// 	}
-// }
-
-// export async function GET(req: NextRequest) {
-// 	try {
-// 		const { searchParams } = new URL(req.url);
-// 		const studentId = searchParams.get("studentId");
-// 		const adminId = searchParams.get("adminId");
-
-// 		if (!studentId || !adminId) {
-// 			return NextResponse.json(
-// 				{ error: "Both studentId and adminId are required" },
-// 				{ status: 400 }
-// 			);
-// 		}
-
-// 		const messages = await prisma.chatMessage.findMany({
-// 			where: {
-// 				OR: [
-// 					{
-// 						senderStudentId: studentId,
-// 						receiverAdminId: adminId,
-// 					},
-// 					{
-// 						senderAdminId: adminId,
-// 						receiverStudentId: studentId,
-// 					},
-// 				],
-// 			},
-// 			orderBy: { timestamp: "asc" },
-// 			include: {
-// 				complaint: {
-// 					select: {
-// 						id: true,
-// 						title: true,
-// 						status: true,
-// 						category: { select: { name: true } },
-// 					},
-// 				},
-// 			},
-// 		});
-
-// 		return NextResponse.json({ messages });
-// 	} catch (error) {
-// 		console.error("Error fetching messages:", error);
-// 		return NextResponse.json(
-// 			{ error: "Failed to fetch messages" },
-// 			{ status: 500 }
-// 		);
-// 	}
-// }
-
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-
-/**
- * POST → Send a new chat message (linked to an active complaint)
- * GET → Fetch chat messages between a student and an admin for a specific complaint
- */
+import { v4 as uuidv4 } from "uuid";
+import cloudinary from "@/lib/cloudinary";
 
 export async function POST(req: NextRequest) {
 	try {
-		const { message, senderRole, senderId, receiverId, complaintId } =
-			await req.json();
+		const contentType = req.headers.get("content-type");
 
-		if (!message || !senderRole || !senderId || !receiverId) {
-			return NextResponse.json(
-				{ error: "Message, senderRole, senderId, and receiverId are required" },
-				{ status: 400 }
-			);
-		}
+		// ✅ Handle text message
+		if (contentType?.includes("application/json")) {
+			const { message, senderRole, senderId, receiverId, complaintId } =
+				await req.json();
 
-		// ✅ Automatically find the most recent active complaint if complaintId is not provided
-		let activeComplaintId = complaintId || null;
-		if (!activeComplaintId) {
-			const latestComplaint = await prisma.complaint.findFirst({
-				where: {
-					studentId: senderRole === "STUDENT" ? senderId : receiverId,
-					status: { in: ["PENDING", "IN_PROGRESS", "REJECTED", "RESOLVED"] },
-				},
-				orderBy: { dateSubmitted: "desc" },
-			});
-
-			if (!latestComplaint) {
+			if (!message || !senderRole || !senderId || !receiverId) {
 				return NextResponse.json(
-					{ error: "No active complaint found for this conversation." },
-					{ status: 404 }
+					{ error: "Missing required fields" },
+					{ status: 400 }
 				);
 			}
 
-			activeComplaintId = latestComplaint.id;
+			let activeComplaintId = complaintId || null;
+			if (!activeComplaintId) {
+				const latestComplaint = await prisma.complaint.findFirst({
+					where: {
+						studentId: senderRole === "STUDENT" ? senderId : receiverId,
+						status: { in: ["PENDING", "IN_PROGRESS", "REJECTED", "RESOLVED"] },
+					},
+					orderBy: { dateSubmitted: "desc" },
+				});
+
+				if (!latestComplaint) {
+					return NextResponse.json(
+						{ error: "No active complaint found for this conversation." },
+						{ status: 404 }
+					);
+				}
+				activeComplaintId = latestComplaint.id;
+			}
+
+			const newMessage = await prisma.chatMessage.create({
+				data: {
+					message,
+					status: "SENT",
+					complaintId: activeComplaintId,
+					...(senderRole === "STUDENT"
+						? { senderStudentId: senderId, receiverAdminId: receiverId }
+						: { senderAdminId: senderId, receiverStudentId: receiverId }),
+				},
+			});
+
+			return NextResponse.json({ message: newMessage }, { status: 201 });
 		}
 
-		if (!activeComplaintId) {
-			return NextResponse.json(
-				{ error: "Missing complaintId — unable to associate message." },
-				{ status: 400 }
-			);
+		// ✅ Handle file upload via Cloudinary
+		if (contentType?.includes("multipart/form-data")) {
+			const formData = await req.formData();
+			const senderRole = formData.get("senderRole") as string;
+			const senderId = formData.get("senderId") as string;
+			const receiverId = formData.get("receiverId") as string;
+			const complaintId = formData.get("complaintId") as string;
+			const files = formData.getAll("file") as File[];
+
+			for (const file of files) {
+				if (!file || !senderId || !receiverId) {
+					return NextResponse.json(
+						{ error: "Missing required fields or file" },
+						{ status: 400 }
+					);
+				}
+
+				const bytes = await file.arrayBuffer();
+				const buffer = Buffer.from(bytes);
+
+				const originalName = file.name; // ✅ Capture the actual filename
+				const extension = originalName.split(".").pop();
+				const publicId = `${originalName.split(".")[0]}-${uuidv4()}`; // unique but readable name
+
+				// 🔹 Upload directly to Cloudinary
+				const uploadResponse = await new Promise((resolve, reject) => {
+					const stream = cloudinary.uploader.upload_stream(
+						{
+							folder: "complaint_uploads",
+							public_id: publicId,
+							resource_type: "auto",
+						},
+						(error, result) => {
+							if (error) reject(error);
+							else resolve(result);
+						}
+					);
+					stream.end(buffer);
+				});
+
+				const { secure_url } = uploadResponse as {
+					secure_url: string;
+				};
+
+				const newMessage = await prisma.chatMessage.create({
+					data: {
+						message: "📎 File uploaded",
+						fileUrl: secure_url,
+						fileName: originalName, // ✅ Store the real filename
+						status: "SENT",
+						complaintId,
+						...(senderRole === "STUDENT"
+							? { senderStudentId: senderId, receiverAdminId: receiverId }
+							: { senderAdminId: senderId, receiverStudentId: receiverId }),
+					},
+				});
+
+				return NextResponse.json({ message: newMessage }, { status: 201 });
+			}
 		}
-
-		// ✅ Create the chat message
-		const newMessage = await prisma.chatMessage.create({
-			data: {
-				message,
-				status: "SENT",
-				complaintId: activeComplaintId,
-				...(senderRole === "STUDENT"
-					? { senderStudentId: senderId, receiverAdminId: receiverId }
-					: { senderAdminId: senderId, receiverStudentId: receiverId }),
-			},
-			include: { complaint: true },
-		});
-
-		return NextResponse.json({ message: newMessage }, { status: 201 });
 	} catch (error) {
-		console.error("Error sending message:", error);
+		console.error(
+			"Error sending message:",
+			error instanceof Error ? error.message : error
+		);
 		return NextResponse.json(
 			{ error: "Failed to send message" },
 			{ status: 500 }
@@ -227,39 +133,30 @@ export async function GET(req: NextRequest) {
 
 		if (!studentId || !adminId || !complaintId) {
 			return NextResponse.json(
-				{ error: "studentId, adminId, and complaintId are required" },
+				{ error: "Missing required query parameters" },
 				{ status: 400 }
 			);
 		}
 
 		const messages = await prisma.chatMessage.findMany({
 			where: {
-				complaintId: complaintId || undefined,
+				complaintId,
 				OR: [
-					{ senderStudentId: studentId },
-					{ receiverStudentId: studentId },
-					{ senderAdminId: adminId },
-					{ receiverAdminId: adminId },
+					{ senderStudentId: studentId, receiverAdminId: adminId },
+					{ senderAdminId: adminId, receiverStudentId: studentId },
 				],
 			},
 			orderBy: { timestamp: "asc" },
-			include: {
-				complaint: {
-					select: {
-						id: true,
-						title: true,
-						status: true,
-						category: { select: { name: true } },
-					},
-				},
-			},
 		});
 
-		return NextResponse.json({ messages });
+		return NextResponse.json({ messages }, { status: 200 });
 	} catch (error) {
-		console.error("Error fetching messages:", error);
+		console.error(
+			"Error fetching messages:",
+			error instanceof Error ? error.message : error
+		);
 		return NextResponse.json(
-			{ error: "Failed to fetch messages" },
+			{ error: "Failed to load messages" },
 			{ status: 500 }
 		);
 	}

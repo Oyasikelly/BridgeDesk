@@ -1,44 +1,23 @@
 "use client";
-import {
-	TrendingUp,
-	TrendingDown,
-	MessageSquare,
-	CheckCircle2,
-	Clock,
-} from "lucide-react";
-import { useUser } from "@/context/userContext";
 
-export function DashboardCards() {
-	const cards = [
-		{
-			title: "Total Complaints",
-			desc: "All complaints you’ve submitted so far",
-			icon: <MessageSquare className="text-primary" />,
-			trend: <TrendingUp className="text-primary/80" />,
-			value: "23",
-		},
-		{
-			title: "Resolved Complaints",
-			desc: "Complaints attended to by the admin",
-			icon: <CheckCircle2 className="text-green-500" />,
-			trend: <TrendingUp className="text-green-500" />,
-			value: "18",
-		},
-		{
-			title: "Pending Complaints",
-			desc: "Awaiting admin response or feedback",
-			icon: <Clock className="text-yellow-500" />,
-			trend: <TrendingDown className="text-red-500" />,
-			value: "5",
-		},
-	];
+export interface DashboardCardProps {
+	title: string;
+	desc: string;
+	icon: React.ReactNode;
+	trend: React.ReactNode;
+	value: number | string;
+}
 
-	const { userData } = useUser();
+interface DashboardCardsProps {
+	name?: string;
+	cards?: DashboardCardProps[];
+}
 
+export function DashboardCards({ name, cards = [] }: DashboardCardsProps) {
 	return (
 		<>
 			<h1 className="text-primary font-bold text-2xl md:text-3xl">
-				Welcome {userData?.name} ! 👋
+				Welcome {name} ! 👋
 			</h1>
 			<div className="bg-white p-6 rounded-xl shadow dark:bg-primary-foreground">
 				<h2 className="font-semibold mb-4">My Complaint Summary</h2>

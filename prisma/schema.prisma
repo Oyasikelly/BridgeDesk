@@ -202,6 +202,9 @@ model ChatMessage {
   attachments String[]      @default([])
   timestamp   DateTime      @default(now())
   status      MessageStatus @default(SENT)
+  fileUrl          String?  
+  fileName         String?  
+
 
   // Relations
   senderAdmin   Admin?  @relation("AdminSentMessages", fields: [senderAdminId], references: [id])

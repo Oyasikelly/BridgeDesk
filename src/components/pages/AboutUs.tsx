@@ -20,6 +20,7 @@ import {
 	SlideInRightWhenVisible,
 } from "@/components/animations/slideInAnimations";
 import { FadeInWhenVisible } from "@/components/animations/fadeInWhenVisible";
+import Link from "next/link";
 
 const values = [
 	{
@@ -102,14 +103,14 @@ export default function AboutUs() {
 
 				<section
 					id="our-story"
-					className="h-screen bg-background text-foreground flex flex-col justify-center px-20">
+					className="h-screen bg-background bg-background dark:bg-black text-foreground flex flex-col justify-center px-20">
 					<div className="grid grid-col-1 md:grid-cols-2 justify-items-center gap-6">
 						<div className="flex flex-col justify-center">
 							<SlideInLeftWhenVisible>
 								<h2 className="text-4xl font-semibold mb-4">Our Story</h2>
 							</SlideInLeftWhenVisible>
 							<SlideInLeftWhenVisible>
-								<p className="text-foreground/90">
+								<p className="leading-relaxed">
 									Founded with a vision to simplify processes and promote
 									transparency, our team set out to build intuitive systems that
 									put users first. Over the years, we’ve grown into a dedicated
@@ -222,7 +223,9 @@ function OurValues() {
 					<p className="text-background/90 mb-10">
 						{values[currentIndex].description}
 					</p>
-					<Button>Learn More</Button>
+					<Link href="/login">
+						<Button>Learn More</Button>
+					</Link>
 				</motion.div>
 			</div>
 		</section>
@@ -231,7 +234,7 @@ function OurValues() {
 
 function MissionVision() {
 	return (
-		<section className="bg-foreground text-background py-20 px-10 md:px-20">
+		<section className="bg-foreground bg-background dark:bg-black text-foreground py-20 px-10 md:px-20">
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
 				<div>
 					<SlideInLeftWhenVisible>

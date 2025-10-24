@@ -17,6 +17,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/userContext";
+import { Spinner } from "../ui/spinner";
 
 type UserRole = "student" | "admin";
 
@@ -56,9 +57,29 @@ export const adminLinks = [
 
 export function Sidebar() {
 	const { userData } = useUser();
+	const [loading, setLoading] = useState(true);
 
 	const activeLinks = userData?.role === "ADMIN" ? adminLinks : studentLinks;
 	const pathname = usePathname();
+	const [pendingComplaints, setPendingComplaints] = useState(0);
+	useEffect(() => {
+		async function fetchPendingComplaint() {
+			try {
+				setLoading(true);
+				const res = await fetch(
+					`/api/complaints?studentId=${userData?.student?.id}`
+				);
+				const data = await res.json();
+				setPendingComplaints(data.pendingComplaints || 0);
+				console.log("All Complaints Data:", userData?.id, data);
+			} catch (err) {
+				console.error("Error fetching all complaints:", err);
+			} finally {
+				setLoading(false);
+			}
+		}
+		if (userData?.id) fetchPendingComplaint();
+	}, [userData]);
 
 	return (
 		<aside className="bg-foreground dark:bg-background text-background/90 w-64 min-h-screen flex flex-col justify-between p-4">
@@ -77,7 +98,16 @@ export function Sidebar() {
 				) : (
 					<div className="bg-gradient-to-r from-primary/40 to-primary p-4 rounded-xl text-center mb-6">
 						<p className="text-sm opacity-80">Pending Complaints</p>
-						<h2 className="text-2xl font-bold">3</h2>
+						{!loading ? (
+							<h2 className="text-2xl font-bold">{pendingComplaints}</h2>
+						) : (
+							<div className="flex justify-center mt-2">
+								<Spinner
+									size="sm"
+									color="primary"
+								/>
+							</div>
+						)}
 					</div>
 				)}
 

@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
 				studentId,
 				status: "PENDING",
 				adminId,
+				departmentId: studentId?.departmentId || null,
 			},
 			include: {
 				category: true,
@@ -88,7 +89,29 @@ export async function GET(req: NextRequest) {
 			orderBy: { dateSubmitted: "desc" },
 		});
 
-		return NextResponse.json({ complaints });
+		const totalComplaints = complaints.length;
+
+		const resolvedComplaints = complaints.filter(
+			(c) => c.status.toUpperCase() === "RESOLVED"
+		).length;
+
+		const pendingComplaints = complaints.filter(
+			(c) => c.status.toUpperCase() === "PENDING"
+		).length;
+		const RejectedComplaints = complaints.filter(
+			(c) => c.status.toUpperCase() === "REJECTED"
+		).length;
+
+		return NextResponse.json(
+			{
+				complaints,
+				totalComplaints,
+				resolvedComplaints,
+				pendingComplaints,
+				RejectedComplaints,
+			},
+			{ status: 200 }
+		);
 	} catch (error: any) {
 		console.error("Error fetching complaints:", error);
 		return NextResponse.json(

@@ -12,7 +12,7 @@ import {
 	CardTitle,
 	CardDescription,
 } from "@/components/ui/card";
-import { Eye, EyeOff, BookOpen } from "lucide-react";
+import { Eye, EyeOff, BookOpen, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GraduationCap, BarChart3 } from "lucide-react";
@@ -28,7 +28,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import { FaChevronLeft } from "react-icons/fa";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -56,6 +55,7 @@ export default function RegisterPageContent() {
 	};
 	const [schools, setschools] = useState<school[]>([]);
 	const [loadingOrgs, setLoadingOrgs] = useState(true);
+	const Router = useRouter();
 
 	// Remove the automatic redirect logic - users should be able to register new accounts
 	// even if they have an existing session
@@ -172,7 +172,7 @@ export default function RegisterPageContent() {
 	};
 	return (
 		<ThemeProvider>
-			<div className="min-h-screen bg-background">
+			<div className="min-h-screen bg-background dark:bg-black/95">
 				{/* Header */}
 				<header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 py-2 px-2 sm:px-6 lg:px-20">
 					<div className="flex h-16 items-center justify-between w-full max-w-8xl mx-auto">
@@ -188,14 +188,12 @@ export default function RegisterPageContent() {
 				</header>
 
 				<div className="px-20 py-4">
-					<Link
-						href="/"
-						className="text-primary hover:underline-md transition-all duration-300">
-						<button className="text-primary group underline-offset-4 hover:underline flex items-center gap-2">
-							<FaChevronLeft className="group-hover:translate-x-2 transition-all duration-300 " />
-							Go to home
-						</button>
-					</Link>
+					<button
+						onClick={() => Router.back()}
+						className="flex items-center gap-2 mb-8 text-sm font-medium  hover:text-primary transition">
+						<ArrowLeft className="w-4 h-4" />
+						Back
+					</button>
 				</div>
 
 				{/* Main Content */}

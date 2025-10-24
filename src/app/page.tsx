@@ -97,7 +97,7 @@ export default function Home() {
 
 				<section
 					id="streamline-complains"
-					className="h-screen bg-background text-foreground flex flex-col justify-center px-20">
+					className="h-screen bg-background dark:bg-black text-foreground flex flex-col justify-center px-20">
 					<div className="grid grid-col-1 md:grid-cols-2 justify-items-center gap-4 ">
 						<div className="flex flex-col justify-center">
 							<SlideInLeftWhenVisible>
@@ -157,24 +157,6 @@ function StreamlineComplains() {
 		);
 	}
 
-	// Animation variants
-	// const variants = {
-	// 	enter: (direction: "left" | "right") => ({
-	// 		x: direction === "right" ? 200 : -200,
-	// 		opacity: 0,
-	// 	}),
-	// 	center: {
-	// 		x: 0,
-	// 		opacity: 1,
-	// 		transition: { duration: 0.5 },
-	// 	},
-	// 	exit: (direction: "left" | "right") => ({
-	// 		x: direction === "right" ? -200 : 200,
-	// 		opacity: 0,
-	// 		transition: { duration: 0.5 },
-	// 	}),
-	// };
-
 	const handlers = useSwipeable({
 		onSwipedLeft: () => handleNext(),
 		onSwipedRight: () => handlePrev(),
@@ -182,13 +164,13 @@ function StreamlineComplains() {
 		trackMouse: true, // allows dragging on desktop too
 	});
 
-	interface ComplaintSlide {
-		id: number;
-		title: string;
-		description?: string;
-		image?: string;
-		// add other properties if available
-	}
+	// interface ComplaintSlide {
+	// 	id: number;
+	// 	title: string;
+	// 	description?: string;
+	// 	image?: string;
+	// 	// add other properties if available
+	// }
 	return (
 		<section
 			id="streamline-complains"
@@ -290,9 +272,12 @@ function StreamlineComplains() {
 						</p>
 					</FadeInWhenVisible>
 					<FadeInWhenVisible>
-						<div className="flex gap-4">
-							<Button>Submit</Button>
-							<Button>Learn now</Button>
+						<div className="flex gap-4 cursor-pointer">
+							<Link
+								href="/login"
+								className="cursor-pointer">
+								<Button>Learn now</Button>
+							</Link>
 						</div>
 					</FadeInWhenVisible>
 				</motion.div>
@@ -304,7 +289,7 @@ function ComplaintManagement() {
 	return (
 		<section
 			id="streamline-complains"
-			className="h-screen bg-background text-background flex flex-col justify-center my-20 px-10 md:px-20 overflow-hidden">
+			className="h-screen bg-background dark:bg-black text-background flex flex-col justify-center px-10 md:px-20 overflow-hidden">
 			<div className="grid grid-col-1 md:grid-cols-2 items-center gap-6">
 				{/* LEFT IMAGE SLIDE SECTION */}
 				<div className="text-foreground h-full">
@@ -349,11 +334,10 @@ function ComplaintManagement() {
 
 					<FadeInWhenVisible>
 						<div className="flex gap-4">
-							<Button>Submit</Button>
 							<Link
-								href="/contact"
-								className="flex items-center justify-center gap-4 group group-hover:text-foreground/70 ">
-								Learn More{" "}
+								href="/register"
+								className="flex items-center justify-center gap-4 cursor-pointer group group-hover:text-foreground/70 ">
+								Learn More
 								<FaChevronRight className="group-hover:translate-x-2 transition-all duration-300" />
 							</Link>
 						</div>
@@ -378,7 +362,7 @@ function ComplaintManagement() {
 
 function Streamline() {
 	return (
-		<section className="bg-foreground text-background py-20 px-10 md:px-20">
+		<section className="bg-foreground dark:bg-ring text-background py-20 px-10 md:px-20">
 			<div className="mx-auto">
 				{/* Top Section */}
 
@@ -419,15 +403,19 @@ function Streamline() {
 								Stay updated with live tracking of your complaints.
 							</p>
 							<div className="flex items-center gap-4">
-								<Button
-									variant="default"
-									className="rounded-full bg-background text-foreground hover:bg-background/90 px-6">
-									Learn More
-								</Button>
-								<button className="text-primary group underline-offset-4 hover:underline flex items-center gap-2">
-									Sign Up
-									<FaChevronRight className="group-hover:translate-x-2 transition-all duration-300 " />
-								</button>
+								<Link href="/login">
+									<Button
+										variant="default"
+										className="rounded-full cursor-pointer bg-background text-foreground dark:text-primary hover:bg-background/90 px-6">
+										Learn More
+									</Button>
+								</Link>
+								<Link href="/register">
+									<button className="text-primary cursor-pointer group underline-offset-4 hover:underline flex items-center gap-2">
+										Sign Up
+										<FaChevronRight className="group-hover:translate-x-2 transition-all duration-300 " />
+									</button>
+								</Link>
 							</div>
 						</SlideInLeftWhenVisible>
 					</div>
