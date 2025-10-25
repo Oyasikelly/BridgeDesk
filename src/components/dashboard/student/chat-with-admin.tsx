@@ -141,7 +141,7 @@ export default function ChatWithAdmin({
 			setUploadProgress(0);
 
 			const xhr = new XMLHttpRequest();
-			xhr.open("POST", "/api/chat");
+			xhr.open("POST", "/api/student/chat");
 
 			xhr.upload.onprogress = (e) => {
 				if (e.lengthComputable) {

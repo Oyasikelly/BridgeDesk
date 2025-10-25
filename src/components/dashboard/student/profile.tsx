@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -21,8 +21,24 @@ import { Spinner } from "@/components/ui/spinner";
 export default function StudentProfilePage() {
 	const [editing, setEditing] = useState(false);
 	const [loading, setLoading] = useState(false);
+	const [uploading, setUploading] = useState(false);
+	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const { userData, setUserData, refreshUserData } = useUser();
-	const [profile, setProfile] = useState({
+
+	type Profile = {
+		fullName: string;
+		matricNo: string;
+		department: string;
+		level: string;
+		email: string;
+		phone: string;
+		hostel: string;
+		joinedDate: string;
+		avatar: string;
+		avatarFile?: File | null;
+	};
+
+	const [profile, setProfile] = useState<Profile>({
 		fullName: userData?.student?.fullName || "N/A",
 		matricNo: userData?.student?.matricNo || "N/A",
 		department: userData?.student?.department || "N/A",
@@ -30,29 +46,86 @@ export default function StudentProfilePage() {
 		email: userData?.student?.email || "N/A",
 		phone: userData?.student?.phone || "N/A",
 		hostel: userData?.student?.hostel || "N/A",
-		joinedDate: userData?.student?.joinedDate || "N/A",
+		joinedDate: (() => {
+			const jd = userData?.student?.joinedDate;
+			return jd instanceof Date ? jd.toISOString() : jd ?? "N/A";
+		})(),
 		avatar: userData?.student?.avatarUrl || "/assets/default-avatar.jpg",
+		avatarFile: null,
 	});
 
+	// ✅ handle text field changes
 	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const { name, value } = e.target;
 		setProfile((prev) => ({ ...prev, [name]: value }));
 	};
 
+	// ✅ handle avatar upload
+	const handleAvatarClick = () => {
+		fileInputRef.current?.click();
+	};
+
+	const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+		const file = e.target.files?.[0];
+		if (!file) return;
+
+		if (!file.type.startsWith("image/")) {
+			toast.error("Please upload a valid image file");
+			return;
+		}
+
+		try {
+			setUploading(true);
+
+			// --- OPTION A: Upload to Cloudinary ---
+			const uploadData = new FormData();
+			uploadData.append("file", file);
+			uploadData.append("upload_preset", "your_upload_preset"); // replace
+			const res = await fetch(
+				`https://api.cloudinary.com/v1_1/de3w6k8ov/image/upload`,
+				{
+					method: "POST",
+					body: uploadData,
+				}
+			);
+			const data = await res.json();
+			if (!res.ok) throw new Error("Upload failed");
+
+			// set both the avatar URL and the avatar file for later saving
+			setProfile((prev) => ({
+				...prev,
+				avatar: data.secure_url,
+				avatarFile: file,
+			}));
+
+			toast.success("Profile picture uploaded ✅");
+		} catch (err: any) {
+			console.error(err);
+			toast.error("Failed to upload image ❌");
+		} finally {
+			setUploading(false);
+		}
+	};
+
 	const handleSave = async () => {
 		try {
 			setLoading(true);
+
+			const formData = new FormData();
+			formData.append("id", userData?.student?.id || "");
+			formData.append("fullName", profile.fullName);
+			formData.append("email", profile.email);
+			formData.append("phone", profile.phone);
+			formData.append("hostel", profile.hostel);
+
+			// ✅ Append avatar only if a file is selected
+			if (profile.avatarFile instanceof File) {
+				formData.append("avatar", profile.avatarFile);
+			}
+
 			const res = await fetch("/api/student/update", {
 				method: "PUT",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					id: userData?.student?.id,
-					fullName: profile.fullName,
-					email: profile.email,
-					phone: profile.phone,
-					hostel: profile.hostel,
-					avatarUrl: profile.avatar,
-				}),
+				body: formData,
 			});
 
 			if (!res.ok) {
@@ -82,7 +155,7 @@ export default function StudentProfilePage() {
 	};
 
 	return (
-		<div className="p-6 bg-background  min-h-screen">
+		<div className="p-6 bg-background min-h-screen">
 			<Card className="max-w-4xl mx-auto shadow-md border border-primary-foreground">
 				<CardHeader className="flex justify-between items-center">
 					<div className="flex items-center gap-4">
@@ -92,10 +165,29 @@ export default function StudentProfilePage() {
 								alt="Profile"
 								className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"
 							/>
-							<button className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full hover:bg-primary/80 transition">
+							<label
+								htmlFor="avatar-upload"
+								className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full hover:bg-primary/80 cursor-pointer transition">
 								<Camera size={16} />
-							</button>
+							</label>
+							<input
+								id="avatar-upload"
+								type="file"
+								accept="image/*"
+								className="hidden"
+								onChange={(e) => {
+									const file = e.target.files?.[0];
+									if (file) {
+										setProfile((prev) => ({
+											...prev,
+											avatar: URL.createObjectURL(file),
+											avatarFile: file,
+										}));
+									}
+								}}
+							/>
 						</div>
+
 						<div>
 							<CardTitle className="text-2xl font-bold text-foreground/80">
 								{profile.fullName}
@@ -221,13 +313,15 @@ export default function StudentProfilePage() {
 					<div className="flex justify-end p-4 border-t bg-gray-50 dark:bg-primary-foreground">
 						<Button
 							onClick={handleSave}
-							className="bg-primary hover:bg-primary/90 text-white">
-							Save Changes
-							{loading && (
+							className="bg-primary hover:bg-primary/90 text-white"
+							disabled={loading}>
+							{loading ? (
 								<Spinner
 									size="sm"
 									color="white"
 								/>
+							) : (
+								"Save Changes"
 							)}
 						</Button>
 					</div>

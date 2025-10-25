@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { MessageSquare, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+
 import {
 	Dialog,
 	DialogContent,
@@ -32,6 +34,7 @@ type Complaint = {
 	category: {
 		id: string;
 		name: string;
+		adminId?: string;
 	};
 	status: ComplaintStatus;
 	dateSubmitted: string;
@@ -40,6 +43,11 @@ type Complaint = {
 
 export default function MyComplaintsPage() {
 	const [complaints, setComplaints] = useState<Complaint[]>([]);
+	const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
+		null
+	);
+	const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
 	const { userData } = useUser();
@@ -51,6 +59,7 @@ export default function MyComplaintsPage() {
 		categoryId: "",
 		description: "",
 	});
+	const router = useRouter();
 
 	// ✅ Fetch complaints from DB
 	const fetchComplaints = async () => {
@@ -276,12 +285,22 @@ export default function MyComplaintsPage() {
 											<td className="py-3 px-4 flex gap-2">
 												<Button
 													variant="outline"
-													size="sm">
+													size="sm"
+													onClick={() => {
+														setSelectedComplaint(complaint);
+														setIsViewModalOpen(true);
+													}}>
 													View
 												</Button>
+
 												<Button
 													variant="outline"
-													size="sm">
+													size="sm"
+													onClick={() => {
+														router.push(
+															`/student/chat-with-admin?complaintId=${complaint.id}&adminId=${complaint.category?.adminId}`
+														);
+													}}>
 													Chat
 												</Button>
 											</td>
@@ -292,6 +311,41 @@ export default function MyComplaintsPage() {
 						</tbody>
 					</table>
 				)}
+				<Dialog
+					open={isViewModalOpen}
+					onOpenChange={setIsViewModalOpen}>
+					<DialogContent className="sm:max-w-lg">
+						<DialogHeader>
+							<DialogTitle>Complaint Details</DialogTitle>
+						</DialogHeader>
+
+						{selectedComplaint && (
+							<div className="space-y-3 py-2">
+								<p>
+									<strong>Title:</strong> {selectedComplaint.title}
+								</p>
+								<p>
+									<strong>Category:</strong> {selectedComplaint.category.name}
+								</p>
+								<p>
+									<strong>Status:</strong> {selectedComplaint.status}
+								</p>
+								<p>
+									<strong>Date Submitted:</strong>{" "}
+									{new Date(selectedComplaint.dateSubmitted).toLocaleString()}
+								</p>
+								<p>
+									<strong>Description:</strong>
+								</p>
+								<p className="text-gray-700">{selectedComplaint.description}</p>
+							</div>
+						)}
+
+						<DialogFooter>
+							<Button onClick={() => setIsViewModalOpen(false)}>Close</Button>
+						</DialogFooter>
+					</DialogContent>
+				</Dialog>
 			</div>
 		</div>
 	);

@@ -111,7 +111,7 @@ export default function StudentDashboard() {
 						{!loading ? (
 							<>
 								<DashboardCards
-									name={userData?.name ?? ""}
+									name={userData?.student?.fullName ?? ""}
 									cards={cards}
 								/>
 								{userData?.id && <BarChartCard student={{ id: userData.id }} />}

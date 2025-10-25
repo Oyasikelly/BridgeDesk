@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import SidebarCategories from "./components/SidebarCategories";
 import ComplaintList from "./components/ComplaintList";
 import ChatWithAdmin from "./chat-with-admin";
@@ -8,14 +9,50 @@ import ChatWithAdmin from "./chat-with-admin";
 export default function StudentChatPage() {
 	const [selectedCategory, setSelectedCategory] = useState<any>(null);
 	const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
+	const [autoLoaded, setAutoLoaded] = useState(false);
+	const searchParams = useSearchParams();
 
-	console.log("Selected Category:", selectedCategory);
+	const complaintId = searchParams.get("complaintId");
+	const adminId = searchParams.get("adminId");
+
+	// ✅ Auto-load complaint when opened via link with params
+	useEffect(() => {
+		const loadComplaint = async () => {
+			if (!complaintId || autoLoaded) return;
+			try {
+				const res = await fetch(`/api/complaints/${complaintId}`);
+				if (!res.ok) {
+					console.error("Fetch failed:", res.status);
+					throw new Error(`Failed to fetch complaint (${res.status})`);
+				}
+
+				// ✅ Ensure it's valid JSON before parsing
+				const contentType = res.headers.get("content-type");
+				if (!contentType || !contentType.includes("application/json")) {
+					throw new Error(
+						"Response is not JSON. Check your API route path or authentication."
+					);
+				}
+
+				const data = await res.json();
+
+				setSelectedComplaint(data.complaint);
+				setSelectedCategory(data.complaint.category);
+				setAutoLoaded(true);
+			} catch (err) {
+				console.error("Error loading complaint:", err);
+			}
+		};
+
+		loadComplaint();
+	}, [complaintId, autoLoaded]);
+
 	return (
 		<div className="flex gap-0 h-[85vh] max-w-7xl mx-auto rounded-xl border shadow-md overflow-hidden">
 			<SidebarCategories
 				onSelectCategory={(cat) => {
 					setSelectedCategory(cat);
-					setSelectedComplaint(null); // reset when switching category
+					setSelectedComplaint(null);
 				}}
 				selectedCategoryId={selectedCategory?.id || null}
 			/>
@@ -33,7 +70,16 @@ export default function StudentChatPage() {
 					<ChatWithAdmin
 						key={selectedComplaint?.id}
 						complaintId={selectedComplaint?.id}
-						assignedAdminId={selectedComplaint.category?.adminId}
+						assignedAdminId={
+							selectedComplaint?.category?.adminId || adminId || ""
+						}
+					/>
+				) : complaintId && adminId ? (
+					// ✅ Show chat directly if opened via link
+					<ChatWithAdmin
+						key={complaintId}
+						complaintId={complaintId}
+						assignedAdminId={adminId}
 					/>
 				) : (
 					<div className="flex items-center justify-center h-full text-gray-500">

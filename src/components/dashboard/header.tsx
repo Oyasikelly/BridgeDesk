@@ -78,9 +78,10 @@ export function Header({ pageTitle }: { pageTitle: string }) {
 					</Avatar>
 					<div className="hidden md:block">
 						<p className="text-sm font-semibold">
-							{userData?.name
-								? userData.name.charAt(0).toUpperCase() +
-								  userData.name.slice(1).toLowerCase()
+							{userData?.role === "STUDENT"
+								? userData?.student?.fullName
+								: userData?.role === "ADMIN"
+								? userData?.admin?.fullName
 								: ""}
 						</p>
 						<p className="text-xs text-gray-500">
