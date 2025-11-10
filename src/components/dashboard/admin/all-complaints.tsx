@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
 	Search,
 	MessageSquare,
@@ -29,6 +29,10 @@ import {
 	SelectItem,
 } from "@/components/ui/select";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/context/userContext";
+import { ComplaintStatus } from "@prisma/client";
+import { Spinner } from "@/components/ui/spinner";
+import toast from "react-hot-toast";
 
 type Complaint = {
 	id: string;
@@ -36,68 +40,70 @@ type Complaint = {
 	studentName: string;
 	title: string;
 	category: string;
-	status: "Pending" | "In Progress" | "Resolved" | "Rejected";
+	status: ComplaintStatus;
 	date: string;
 	description: string;
 };
 
-const sampleComplaints: Complaint[] = [
-	{
-		id: "C001",
-		studentId: "S001",
-		studentName: "John Doe",
-		title: "Broken Door Lock",
-		category: "Maintenance",
-		status: "Resolved",
-		date: "Sept 28, 2025",
-		description:
-			"The lock on the hostel door is damaged, causing security concerns.",
-	},
-	{
-		id: "C002",
-		studentId: "S002",
-		studentName: "Mary Ann",
-		title: "Wi-Fi Connectivity Issue",
-		category: "ICT Support",
-		status: "In Progress",
-		date: "Oct 2, 2025",
-		description: "Wi-Fi not accessible in the library area.",
-	},
-	{
-		id: "C003",
-		studentId: "S003",
-		studentName: "Daniel Green",
-		title: "Noise at Midnight",
-		category: "Disciplinary",
-		status: "Pending",
-		date: "Oct 4, 2025",
-		description:
-			"Several students in Block C make noise past midnight, disrupting others.",
-	},
-];
+// const sampleComplaints: Complaint[] = [
+// 	{
+// 		id: "C001",
+// 		studentId: "S001",
+// 		studentName: "John Doe",
+// 		title: "Broken Door Lock",
+// 		category: "Maintenance",
+// 		status: "Resolved",
+// 		date: "Sept 28, 2025",
+// 		description:
+// 			"The lock on the hostel door is damaged, causing security concerns.",
+// 	},
+// 	{
+// 		id: "C002",
+// 		studentId: "S002",
+// 		studentName: "Mary Ann",
+// 		title: "Wi-Fi Connectivity Issue",
+// 		category: "ICT Support",
+// 		status: "In Progress",
+// 		date: "Oct 2, 2025",
+// 		description: "Wi-Fi not accessible in the library area.",
+// 	},
+// 	{
+// 		id: "C003",
+// 		studentId: "S003",
+// 		studentName: "Daniel Green",
+// 		title: "Noise at Midnight",
+// 		category: "Disciplinary",
+// 		status: "Pending",
+// 		date: "Oct 4, 2025",
+// 		description:
+// 			"Several students in Block C make noise past midnight, disrupting others.",
+// 	},
+// ];
 
 export default function AllComplaintsPage() {
-	const [complaints, setComplaints] = useState<Complaint[]>(sampleComplaints);
+	const [complaints, setComplaints] = useState<Complaint[]>([]);
 	const [search, setSearch] = useState("");
 	const [filterStatus, setFilterStatus] = useState<string>("All");
 	const router = useRouter();
+	const { userData } = useUser();
+	const [loading, setLoading] = useState(true);
 	const printRef = useRef<HTMLDivElement>(null);
 
 	const getStatusBadge = (status: Complaint["status"]) => {
 		switch (status) {
-			case "Resolved":
+			case "PENDING":
 				return (
-					<Badge className="bg-green-500 hover:bg-green-600">Resolved</Badge>
+					<Badge className="bg-green-500 hover:bg-green-600">Pending</Badge>
 				);
-			case "In Progress":
+			case "IN_PROGRESS":
 				return (
 					<Badge className="bg-blue-500 hover:bg-blue-600">In Progress</Badge>
 				);
-			case "Pending":
+			case "RESOLVED":
 				return (
-					<Badge className="bg-yellow-500 hover:bg-yellow-600">Pending</Badge>
+					<Badge className="bg-yellow-500 hover:bg-yellow-600">Resolved</Badge>
 				);
-			case "Rejected":
+			case "REJECTED":
 				return <Badge className="bg-red-500 hover:bg-red-600">Rejected</Badge>;
 			default:
 				return null;
@@ -188,11 +194,11 @@ export default function AllComplaintsPage() {
               p { margin: 8px 0; }
               strong { color: #222; }
               .status { font-weight: bold; color: ${
-								complaint.status === "Resolved"
+								complaint.status === "RESOLVED"
 									? "green"
-									: complaint.status === "In Progress"
+									: complaint.status === "IN_PROGRESS"
 									? "blue"
-									: complaint.status === "Pending"
+									: complaint.status === "PENDING"
 									? "orange"
 									: "red"
 							}; }
@@ -213,6 +219,57 @@ export default function AllComplaintsPage() {
       `);
 			printWindow.document.close();
 			printWindow.print();
+		}
+	};
+
+	// 🔹 Fetch complaints from API
+	useEffect(() => {
+		const fetchComplaints = async () => {
+			try {
+				const res = await fetch(
+					`/api/admin/complaints?adminId=${userData?.admin?.id}`
+				);
+				const data = await res.json();
+				console.log("Fetched complaints:", data);
+				setComplaints(data.complaints || []);
+			} catch (error) {
+				console.error("Error fetching complaints:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		if (userData?.admin?.id) fetchComplaints();
+	}, [userData]);
+
+	// 🔹 Function to update complaint status
+	const handleStatusUpdate = async (
+		complaintId: string,
+		newStatus: ComplaintStatus
+	) => {
+		try {
+			const res = await fetch(`/api/admin/complaints/${complaintId}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status: newStatus }),
+			});
+
+			if (!res.ok) {
+				throw new Error("Failed to update complaint status");
+			}
+
+			// Update UI state
+			setComplaints((prev) =>
+				prev.map((c) =>
+					c.id === complaintId ? { ...c, status: newStatus } : c
+				)
+			);
+			toast.success(
+				`Complaint marked as ${newStatus.replace("_", " ").toLowerCase()}`
+			);
+		} catch (error) {
+			console.error("Error updating complaint:", error);
+			alert("Failed to update complaint status. Try again.");
 		}
 	};
 
@@ -239,10 +296,10 @@ export default function AllComplaintsPage() {
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="All">All</SelectItem>
-							<SelectItem value="Pending">Pending</SelectItem>
-							<SelectItem value="In Progress">In Progress</SelectItem>
-							<SelectItem value="Resolved">Resolved</SelectItem>
-							<SelectItem value="Rejected">Rejected</SelectItem>
+							<SelectItem value="PENDING">Pending</SelectItem>
+							<SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+							<SelectItem value="RESOLVED">Resolved</SelectItem>
+							<SelectItem value="REJECTED">Rejected</SelectItem>
 						</SelectContent>
 					</Select>
 				</div>
@@ -342,42 +399,26 @@ export default function AllComplaintsPage() {
 														size="sm"
 														variant="outline"
 														onClick={() =>
-															setComplaints((prev) =>
-																prev.map((c) =>
-																	c.id === complaint.id
-																		? { ...c, status: "In Progress" }
-																		: c
-																)
-															)
+															handleStatusUpdate(complaint.id, "IN_PROGRESS")
 														}>
 														<Clock className="h-4 w-4 mr-1" /> In Progress
 													</Button>
+
 													<Button
 														size="sm"
 														variant="outline"
 														onClick={() =>
-															setComplaints((prev) =>
-																prev.map((c) =>
-																	c.id === complaint.id
-																		? { ...c, status: "Resolved" }
-																		: c
-																)
-															)
+															handleStatusUpdate(complaint.id, "RESOLVED")
 														}
 														className="text-green-600 border-green-600">
 														<CheckCircle className="h-4 w-4 mr-1" /> Resolve
 													</Button>
+
 													<Button
 														size="sm"
 														variant="outline"
 														onClick={() =>
-															setComplaints((prev) =>
-																prev.map((c) =>
-																	c.id === complaint.id
-																		? { ...c, status: "Rejected" }
-																		: c
-																)
-															)
+															handleStatusUpdate(complaint.id, "REJECTED")
 														}
 														className="text-red-600 border-red-600">
 														<XCircle className="h-4 w-4 mr-1" /> Reject
@@ -392,12 +433,20 @@ export default function AllComplaintsPage() {
 					</tbody>
 				</table>
 
-				{filteredComplaints.length === 0 && (
+				{loading ? (
+					<div className="flex justify-center items-center h-[80vh] text-gray-500">
+						<Spinner
+							size="md"
+							color="primary"
+						/>
+						Loading complaints...
+					</div>
+				) : filteredComplaints.length === 0 ? (
 					<div className="text-center py-10 text-gray-500">
 						<AlertTriangle className="h-6 w-6 mx-auto mb-2" />
 						<p>No complaints found for the selected filter.</p>
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

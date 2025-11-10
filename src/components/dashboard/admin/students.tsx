@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -30,10 +30,13 @@ import {
 	SelectContent,
 	SelectItem,
 } from "@/components/ui/select";
+import { ComplaintStatus } from "@prisma/client";
+import { Spinner } from "@/components/ui/spinner";
+import toast from "react-hot-toast";
 
 type Complaint = {
 	description: string;
-	status: "Resolved" | "Pending";
+	status: ComplaintStatus;
 	date: string;
 };
 
@@ -51,86 +54,33 @@ type Student = {
 	complaints: Complaint[];
 };
 
-const studentList: Student[] = [
-	{
-		id: "STU001",
-		name: "John Doe",
-		department: "Electrical Engineering",
-		level: "400",
-		email: "johndoe@fupre.edu.ng",
-		phone: "+2348123456789",
-		totalComplaints: 8,
-		resolvedComplaints: 6,
-		status: "Active",
-		joinedDate: "Jan 15, 2024",
-		complaints: [
-			{
-				description: "Power supply to lab faulty",
-				status: "Resolved",
-				date: "Feb 1, 2024",
-			},
-			{
-				description: "Socket overheating",
-				status: "Pending",
-				date: "Mar 12, 2024",
-			},
-		],
-	},
-	{
-		id: "STU002",
-		name: "Mary Ann",
-		department: "Computer Science",
-		level: "300",
-		email: "maryann@fupre.edu.ng",
-		phone: "+2348098765432",
-		totalComplaints: 5,
-		resolvedComplaints: 3,
-		status: "Active",
-		joinedDate: "Feb 10, 2024",
-		complaints: [
-			{
-				description: "WiFi connectivity issue",
-				status: "Resolved",
-				date: "Apr 20, 2024",
-			},
-			{
-				description: "System crash in lab 2",
-				status: "Pending",
-				date: "May 3, 2024",
-			},
-		],
-	},
-	{
-		id: "STU003",
-		name: "David Green",
-		department: "Mechanical Engineering",
-		level: "500",
-		email: "davidgreen@fupre.edu.ng",
-		phone: "+2348087654321",
-		totalComplaints: 12,
-		resolvedComplaints: 9,
-		status: "Suspended",
-		joinedDate: "Sept 5, 2023",
-		complaints: [
-			{
-				description: "WiFi connectivity issue",
-				status: "Resolved",
-				date: "Apr 20, 2024",
-			},
-			{
-				description: "System crash in lab 2",
-				status: "Pending",
-				date: "May 3, 2024",
-			},
-		],
-	},
-];
-
+type Department = {
+	id: string;
+	name: string;
+};
 export default function StudentsPage() {
-	const [students, setStudents] = useState<Student[]>(studentList);
+	const [students, setStudents] = useState<Student[]>([]);
 	const [search, setSearch] = useState("");
+	const [loading, setLoading] = useState(true);
+	const [departments, setDepartments] = useState<Department[]>([]);
 	const [filterDept, setFilterDept] = useState<string>("All");
 
+	// 🔹 Fetch students from API
+	useEffect(() => {
+		const fetchStudents = async () => {
+			try {
+				const res = await fetch("/api/admin/students");
+				if (!res.ok) throw new Error("Failed to fetch students");
+				const data = await res.json();
+				setStudents(data.students || []);
+			} catch (error) {
+				console.error("Error loading students:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchStudents();
+	}, []);
 	const filteredStudents = students.filter(
 		(student) =>
 			(filterDept === "All" || student.department === filterDept) &&
@@ -144,18 +94,46 @@ export default function StudentsPage() {
 		return <Badge className="bg-red-500 hover:bg-red-600">Suspended</Badge>;
 	};
 
-	const toggleSuspend = (id: string) => {
-		setStudents((prev) =>
-			prev.map((student) =>
-				student.id === id
-					? {
-							...student,
-							status: student.status === "Active" ? "Suspended" : "Active",
-					  }
-					: student
-			)
-		);
+	const toggleSuspend = async (id: string) => {
+		try {
+			const current = students.find((s) => s.id === id);
+			if (!current) return;
+
+			const newStatus = current.status === "Active" ? "Suspended" : "Active";
+
+			// Optimistically update local state
+			setStudents((prev) =>
+				prev.map((s) => (s.id === id ? { ...s, status: newStatus } : s))
+			);
+
+			// 🔹 Send update to backend
+			await fetch(`/api/admin/students/${id}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ status: newStatus }),
+			});
+		} catch (error) {
+			console.error("Error updating status:", error);
+		}
 	};
+
+	useEffect(() => {
+		const fetchAllDepartments = async () => {
+			try {
+				const res = await fetch("/api/departments");
+				const data = await res.json();
+				if (res.ok) toast.success("Deparment fetched");
+				console.log(data);
+				setDepartments(data.departments || []);
+				if (!res.ok) throw new Error("Failed to fetch deparmnents");
+			} catch (error) {
+				console.error("Error loading departments:", error);
+				toast.error("Failed to fetch departments");
+			}
+		};
+
+		fetchAllDepartments();
+	}, []);
 
 	// 📄 Export all students to PDF
 	const exportAllToPDF = () => {
@@ -294,7 +272,7 @@ export default function StudentsPage() {
                     <br />
                     <small>Date: ${c.date}</small> | 
                     <span style="color: ${
-											c.status === "Resolved" ? "green" : "red"
+											c.status === "RESOLVED" ? "green" : "red"
 										};">${c.status}</span>
                   </li>`
 								)
@@ -377,7 +355,7 @@ export default function StudentsPage() {
                     <br />
                     <small>Date: ${c.date}</small> | 
                     <span style="color: ${
-											c.status === "Resolved" ? "green" : "red"
+											c.status === "RESOLVED" ? "green" : "red"
 										};">${c.status}</span>
                   </li>`
 								)
@@ -389,36 +367,6 @@ export default function StudentsPage() {
 			printWindow.document.close();
 			printWindow.print();
 		}
-
-		// const doc = new jsPDF();
-		// doc.text(`Student Details: ${student.name}`, 14, 15);
-		// (doc as any).autoTable({
-		// 	head: [["Field", "Value"]],
-		// 	body: [
-		// 		["ID", student.id],
-		// 		["Email", student.email],
-		// 		["Phone", student.phone],
-		// 		["Department", student.department],
-		// 		["Level", student.level],
-		// 		["Status", student.status],
-		// 		["Joined Date", student.joinedDate],
-		// 	],
-		// 	startY: 25,
-		// });
-
-		// doc.text("Complaints", 14, (doc as any).lastAutoTable.finalY + 10);
-		// const complaintsTable = student.complaints.map((c) => [
-		// 	c.description,
-		// 	c.status,
-		// 	c.date,
-		// ]);
-		// (doc as any).autoTable({
-		// 	head: [["Description", "Status", "Date"]],
-		// 	body: complaintsTable,
-		// 	startY: (doc as any).lastAutoTable.finalY + 15,
-		// });
-
-		// doc.save(`${student.name}_report.pdf`);
 	};
 
 	return (
@@ -448,13 +396,13 @@ export default function StudentsPage() {
 						</SelectTrigger>
 						<SelectContent>
 							<SelectItem value="All">All Departments</SelectItem>
-							<SelectItem value="Electrical Engineering">
-								Electrical Engineering
-							</SelectItem>
-							<SelectItem value="Computer Science">Computer Science</SelectItem>
-							<SelectItem value="Mechanical Engineering">
-								Mechanical Engineering
-							</SelectItem>
+							{departments.map((dept) => (
+								<SelectItem
+									key={dept.id}
+									value={dept.name}>
+									{dept.name}
+								</SelectItem>
+							))}
 						</SelectContent>
 					</Select>
 
@@ -480,6 +428,7 @@ export default function StudentsPage() {
 							<th className="py-3 px-4">Actions</th>
 						</tr>
 					</thead>
+
 					<tbody>
 						{filteredStudents.map((student) => (
 							<tr
@@ -495,9 +444,10 @@ export default function StudentsPage() {
 									{student.resolvedComplaints}/{student.totalComplaints}
 								</td>
 								<td className="py-3 px-4">{getStatusBadge(student.status)}</td>
-								<td className="py-3 px-4 flex gap-2">
+
+								<td className="py-3 mt-2 px-4 flex gap-2">
 									<Button
-										variant="default"
+										variant="outline"
 										size="sm">
 										<MessageSquare className="h-4 w-4 mr-1" /> Chat
 									</Button>
@@ -588,12 +538,16 @@ export default function StudentsPage() {
 					</tbody>
 				</table>
 
-				{filteredStudents.length === 0 && (
+				{loading ? (
+					<div className="flex justify-center py-10">
+						<Spinner />
+					</div>
+				) : filteredStudents.length === 0 ? (
 					<div className="text-center py-10 text-gray-500">
 						<UserMinus className="h-6 w-6 mx-auto mb-2" />
 						<p>No students found for the selected filter.</p>
 					</div>
-				)}
+				) : null}
 			</div>
 		</div>
 	);

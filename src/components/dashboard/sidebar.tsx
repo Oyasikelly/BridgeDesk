@@ -62,16 +62,27 @@ export function Sidebar() {
 	const activeLinks = userData?.role === "ADMIN" ? adminLinks : studentLinks;
 	const pathname = usePathname();
 	const [pendingComplaints, setPendingComplaints] = useState(0);
+	const [totalComplaints, setTotalComplaints] = useState([]);
 	useEffect(() => {
 		async function fetchPendingComplaint() {
 			try {
 				setLoading(true);
-				const res = await fetch(
-					`/api/complaints?studentId=${userData?.student?.id}`
-				);
-				const data = await res.json();
-				setPendingComplaints(data.pendingComplaints || 0);
-				console.log("All Complaints Data:", userData?.id, data);
+				if (userData?.role === "STUDENT") {
+					const res = await fetch(
+						`/api/complaints?studentId=${userData?.student?.id}`
+					);
+					const data = await res.json();
+					setPendingComplaints(data.pendingComplaints || 0);
+					console.log("All Complaints Data:", userData?.id, data);
+				} else {
+					const res = await fetch(
+						`/api/admin/complaints?adminId=${userData?.admin?.id}`
+					);
+					const data = await res.json();
+					console.log("Fetched admin complaints:", data.complaints);
+					setTotalComplaints(data.complaints || 0);
+					console.log("All Complaints Data:", userData?.id, data);
+				}
 			} catch (err) {
 				console.error("Error fetching all complaints:", err);
 			} finally {
@@ -93,7 +104,7 @@ export function Sidebar() {
 				{userData?.role === "ADMIN" ? (
 					<div className="bg-gradient-to-r from-primary/40 to-primary p-4 rounded-xl text-center mb-6">
 						<p className="text-sm opacity-80">Active Complaints</p>
-						<h2 className="text-2xl font-bold">24</h2>
+						<h2 className="text-2xl font-bold">{totalComplaints.length}</h2>
 					</div>
 				) : (
 					<div className="bg-gradient-to-r from-primary/40 to-primary p-4 rounded-xl text-center mb-6">

@@ -44,57 +44,6 @@ export default function AdminSettingsPage() {
 	return (
 		<div className="p-6 bg-background/30 min-h-screen">
 			<div className="max-w-5xl mx-auto space-y-8">
-				{/* Admin Profile Settings */}
-				<Card className="border border-primary-foreground shadow-sm">
-					<CardHeader>
-						<CardTitle className="flex items-center gap-2 text-lg font-semibold">
-							<UserCog
-								size={18}
-								className="text-primary"
-							/>
-							Admin Account
-						</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div>
-							<label className="block text-sm font-medium text-foreground/80">
-								Full Name
-							</label>
-							<Input
-								placeholder="Admin Name"
-								className="mt-1"
-							/>
-						</div>
-						<div>
-							<label className="block text-sm font-medium text-foreground/80">
-								Email Address
-							</label>
-							<Input
-								type="email"
-								placeholder="admin@complaints-system.edu.ng"
-								className="mt-1"
-							/>
-						</div>
-						<div>
-							<label className="block text-sm font-medium text-foreground/80">
-								Phone Number
-							</label>
-							<Input
-								type="tel"
-								placeholder="+234 800 000 0000"
-								className="mt-1"
-							/>
-						</div>
-						<Button className="bg-primary text-white hover:bg-primary/90">
-							<Save
-								size={16}
-								className="mr-2"
-							/>{" "}
-							Save Profile
-						</Button>
-					</CardContent>
-				</Card>
-
 				{/* System Settings */}
 				<Card className="border border-primary-foreground shadow-sm">
 					<CardHeader>

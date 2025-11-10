@@ -154,6 +154,7 @@ model Student {
   lastLogin          DateTime?
   totalComplaints    Int       @default(0)
   resolvedComplaints Int       @default(0)
+  
 
   // Relations
   complaints       Complaint[]

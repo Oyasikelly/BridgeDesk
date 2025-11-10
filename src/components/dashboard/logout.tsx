@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
 	Dialog,
@@ -14,43 +14,57 @@ import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { LogOut, Shield, User } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@/context/userContext";
-export default function LogoutPage({
-	userType = "student",
-}: {
-	userType?: "student" | "admin";
-}) {
+
+export default function LogoutPage() {
 	const [open, setOpen] = useState(false);
+	const [role, setRole] = useState<"admin" | "student" | null>(null);
 	const router = useRouter();
+	const { userData } = useUser();
+
+	useEffect(() => {
+		// ✅ Automatically detect role from user context
+		if (userData?.role) {
+			setRole(userData.role.toLowerCase() as "admin" | "student");
+		}
+	}, [userData]);
 
 	const handleLogout = () => {
-		// ✅ Simulate logout logic (replace with your real logout function)
+		// ✅ Example logout logic (clear localStorage, cookies, etc.)
+		localStorage.removeItem("token");
 		setTimeout(() => {
 			setOpen(false);
 			router.push("/login");
 		}, 1000);
 	};
 
+	if (!role) {
+		return (
+			<div className="flex justify-center items-center min-h-screen">
+				<p className="text-gray-500 text-sm">Loading...</p>
+			</div>
+		);
+	}
+
 	return (
 		<div className="flex justify-center items-center min-h-screen bg-background">
 			<Card className="w-full max-w-md shadow-md border border-primary/20 bg-primary-foreground">
 				<CardHeader className="flex flex-col items-center gap-3">
 					<div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-						{userType === "admin" ? (
+						{role === "admin" ? (
 							<Shield className="text-primary h-8 w-8" />
 						) : (
 							<User className="text-primary h-8 w-8" />
 						)}
 					</div>
 					<CardTitle className="text-2xl font-semibold text-foreground">
-						{userType === "admin" ? "Admin Logout" : "Student Logout"}
+						{role === "admin" ? "Admin Logout" : "Student Logout"}
 					</CardTitle>
 				</CardHeader>
 
 				<CardContent className="text-center space-y-4">
 					<p className="text-gray-600">
 						Are you sure you want to log out of your{" "}
-						<span className="font-semibold text-primary">{userType}</span>{" "}
-						account?
+						<span className="font-semibold text-primary">{role}</span> account?
 					</p>
 
 					<Button
@@ -71,7 +85,7 @@ export default function LogoutPage({
 							<LogOut className="h-5 w-5 text-primary" /> Confirm Logout
 						</DialogTitle>
 						<DialogDescription className="text-gray-500">
-							You are about to log out of your {userType} account. Make sure you
+							You are about to log out of your {role} account. Make sure you
 							have saved your progress or pending tasks.
 						</DialogDescription>
 					</DialogHeader>

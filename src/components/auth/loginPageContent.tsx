@@ -115,12 +115,12 @@ export default function LoginPageContent() {
 				</header>
 
 				<div className="px-20 py-4">
-					<button
-						onClick={() => Router.back()}
-						className="flex items-center gap-2 mb-8 text-sm font-medium hover:text-primary transition">
-						<ArrowLeft className="w-4 h-4" />
-						Back
-					</button>
+					<Link href="/">
+						<button className="flex items-center gap-2 mb-8 text-sm font-medium hover:text-primary transition">
+							<ArrowLeft className="w-4 h-4" />
+							Go Back Home
+						</button>
+					</Link>
 				</div>
 				{/* Main Content */}
 				<div className="flex-1 flex items-center justify-center px-4 py-12">

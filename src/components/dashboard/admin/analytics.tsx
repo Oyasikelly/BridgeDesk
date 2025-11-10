@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	PieChart,
@@ -22,98 +23,110 @@ import {
 	CheckCircle,
 	TrendingUp,
 } from "lucide-react";
+import { MdDangerous } from "react-icons/md";
+import { Spinner } from "@/components/ui/spinner";
 
 const COLORS = ["#2563eb", "#22c55e", "#eab308", "#ef4444"];
 
-const complaintStats = [
-	{ name: "Resolved", value: 120 },
-	{ name: "Pending", value: 80 },
-	{ name: "In Review", value: 30 },
-	{ name: "Rejected", value: 15 },
-];
-
-const monthlyData = [
-	{ month: "Jan", complaints: 40 },
-	{ month: "Feb", complaints: 55 },
-	{ month: "Mar", complaints: 70 },
-	{ month: "Apr", complaints: 60 },
-	{ month: "May", complaints: 90 },
-	{ month: "Jun", complaints: 100 },
-	{ month: "Jul", complaints: 85 },
-	{ month: "Aug", complaints: 120 },
-	{ month: "Sep", complaints: 95 },
-];
-
-const departmentData = [
-	{ name: "Engineering", complaints: 120 },
-	{ name: "Sciences", complaints: 90 },
-	{ name: "Social Sci.", complaints: 70 },
-	{ name: "Arts", complaints: 45 },
-];
-
 export default function AdminAnalytics() {
+	const [loading, setLoading] = useState(true);
+	const [data, setData] = useState<any>(null);
+
+	useEffect(() => {
+		const fetchData = async () => {
+			try {
+				const res = await fetch("/api/admin/analytics");
+				const result = await res.json();
+				console.log("Analytics data:", result);
+				setData(result);
+			} catch (error) {
+				console.error("Error loading analytics:", error);
+			} finally {
+				setLoading(false);
+			}
+		};
+		fetchData();
+	}, []);
+
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center h-screen text-gray-500">
+				<Spinner
+					size="md"
+					color="primary"
+				/>
+				Loading analytics...
+			</div>
+		);
+	}
+
+	if (!data) {
+		return (
+			<div className="flex items-center justify-center h-screen text-red-500">
+				Failed to load analytics.
+			</div>
+		);
+	}
+
 	return (
 		<div className="p-6 space-y-6 bg-background min-h-screen">
 			{/* Header */}
-			<div>
-				<p className="text-foreground/90">
-					Track student complaint data and performance insights.
-				</p>
-			</div>
+			<p className="text-foreground/90">
+				Track student complaint data and performance insights.
+			</p>
 
 			{/* Top Stats */}
-			<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-				<Card className="shadow-md">
-					<CardContent className="flex items-center justify-between p-5">
-						<div>
-							<p className="text-sm text-foreground/90">Total Complaints</p>
-							<h3 className="text-2xl font-bold text-foreground/50">245</h3>
-						</div>
+			<div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+				<StatCard
+					title="Total Complaints"
+					value={data.totalComplaints}
+					icon={
 						<MessageSquare
 							className="text-primary"
 							size={30}
 						/>
-					</CardContent>
-				</Card>
-
-				<Card className="shadow-md">
-					<CardContent className="flex items-center justify-between p-5">
-						<div>
-							<p className="text-sm text-foreground/90">Resolved Complaints</p>
-							<h3 className="text-2xl font-bold text-foreground/50">120</h3>
-						</div>
+					}
+				/>
+				<StatCard
+					title="Resolved Complaints"
+					value={data.resolvedCount}
+					icon={
 						<CheckCircle
 							className="text-green-500"
 							size={30}
 						/>
-					</CardContent>
-				</Card>
-
-				<Card className="shadow-md">
-					<CardContent className="flex items-center justify-between p-5">
-						<div>
-							<p className="text-sm text-foreground/90">Pending Complaints</p>
-							<h3 className="text-2xl font-bold text-foreground/50">80</h3>
-						</div>
+					}
+				/>
+				<StatCard
+					title="Pending Complaints"
+					value={data.pendingCount}
+					icon={
 						<AlertTriangle
 							className="text-yellow-500"
 							size={30}
 						/>
-					</CardContent>
-				</Card>
-
-				<Card className="shadow-md">
-					<CardContent className="flex items-center justify-between p-5">
-						<div>
-							<p className="text-sm text-foreground/90">Active Students</p>
-							<h3 className="text-2xl font-bold text-foreground/50">320</h3>
-						</div>
+					}
+				/>
+				<StatCard
+					title="Active Students"
+					value={data.activeStudents}
+					icon={
 						<Users
 							className="text-primary"
 							size={30}
 						/>
-					</CardContent>
-				</Card>
+					}
+				/>
+				<StatCard
+					title="Rejected Complaints"
+					value={data.rejectedCount}
+					icon={
+						<MdDangerous
+							className="text-destructive"
+							size={30}
+						/>
+					}
+				/>
 			</div>
 
 			{/* Charts */}
@@ -131,14 +144,14 @@ export default function AdminAnalytics() {
 							height={300}>
 							<PieChart>
 								<Pie
-									data={complaintStats}
+									data={data.complaintStats}
 									dataKey="value"
 									nameKey="name"
 									cx="50%"
 									cy="50%"
 									outerRadius={100}
 									label>
-									{complaintStats.map((_, index) => (
+									{data?.complaintStats?.map((_: any, index: number) => (
 										<Cell
 											key={index}
 											fill={COLORS[index % COLORS.length]}
@@ -162,7 +175,7 @@ export default function AdminAnalytics() {
 						<ResponsiveContainer
 							width="100%"
 							height={300}>
-							<LineChart data={monthlyData}>
+							<LineChart data={data.monthlyData}>
 								<CartesianGrid strokeDasharray="3 3" />
 								<XAxis dataKey="month" />
 								<YAxis />
@@ -192,7 +205,7 @@ export default function AdminAnalytics() {
 					<ResponsiveContainer
 						width="100%"
 						height={350}>
-						<BarChart data={departmentData}>
+						<BarChart data={data.departmentData}>
 							<CartesianGrid strokeDasharray="3 3" />
 							<XAxis dataKey="name" />
 							<YAxis />
@@ -207,5 +220,27 @@ export default function AdminAnalytics() {
 				</CardContent>
 			</Card>
 		</div>
+	);
+}
+
+function StatCard({
+	title,
+	value,
+	icon,
+}: {
+	title: string;
+	value: number;
+	icon: React.ReactNode;
+}) {
+	return (
+		<Card className="shadow-md">
+			<CardContent className="flex items-center justify-between p-5">
+				<div>
+					<p className="text-sm text-foreground/90">{title}</p>
+					<h3 className="text-2xl font-bold text-foreground/50">{value}</h3>
+				</div>
+				{icon}
+			</CardContent>
+		</Card>
 	);
 }
