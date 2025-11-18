@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidateTag } from "next/cache";
-
 import { prisma } from "@/lib/db";
 
 // PATCH: /api/admin/complaints/[id]
@@ -18,8 +16,7 @@ export async function PATCH(
 				{ status: 400 }
 			);
 		}
-		// Update complaint status in the database
-		revalidateTag("all-complaints");
+
 		const updatedComplaint = await prisma.complaint.update({
 			where: { id },
 			data: { status },

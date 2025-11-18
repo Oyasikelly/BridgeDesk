@@ -66,7 +66,9 @@ export function DashboardLayout({
 
 				{/* Page content with proper spacing */}
 				<main className={`flex-1 p-4 md:p-6 lg:p-8 ${className}`}>
-					<div className="mx-auto max-w-7xl">{children}</div>
+					<div className="mx-auto max-w-7xl scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-gray-300 scrollbar-track-gray-100 overflow-x-auto">
+						{children}
+					</div>
 				</main>
 			</div>
 		</div>

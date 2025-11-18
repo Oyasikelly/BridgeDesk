@@ -32,8 +32,6 @@ import { useRouter } from "next/navigation";
 import { useUser } from "@/context/userContext";
 import { ComplaintStatus } from "@prisma/client";
 import { Spinner } from "@/components/ui/spinner";
-import { getAllComplaints } from "@/lib/actions/getAllComplaints";
-
 import toast from "react-hot-toast";
 
 type Complaint = {
@@ -226,20 +224,22 @@ export default function AllComplaintsPage() {
 
 	// 🔹 Fetch complaints from API
 	useEffect(() => {
-		const fetchData = async () => {
-			if (!userData?.admin?.id) return;
-
+		const fetchComplaints = async () => {
 			try {
-				const data = await getAllComplaints(userData.admin.id);
+				const res = await fetch(
+					`/api/admin/complaints?adminId=${userData?.admin?.id}`
+				);
+				const data = await res.json();
+				console.log("Fetched complaints:", data);
 				setComplaints(data.complaints || []);
-			} catch (err) {
-				console.error(err);
+			} catch (error) {
+				console.error("Error fetching complaints:", error);
 			} finally {
 				setLoading(false);
 			}
 		};
 
-		fetchData();
+		if (userData?.admin?.id) fetchComplaints();
 	}, [userData]);
 
 	// 🔹 Function to update complaint status

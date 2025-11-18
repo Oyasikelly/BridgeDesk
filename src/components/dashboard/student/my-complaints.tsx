@@ -230,7 +230,7 @@ export default function MyComplaintsPage() {
 					</DialogContent>
 				</Dialog>
 			</div>
-			<div className="bg-background dark:bg-primary-foreground shadow rounded-xl p-4">
+			<div className="bg-background dark:bg-primary-foreground shadow rounded-xl p-4 ">
 				{loading ? (
 					<p className="text-center text-gray-500 py-6">
 						Loading complaints...

@@ -11,7 +11,6 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
-import { getComplainSummary } from "@/lib/actions/getComplainSummary";
 
 export default function StudentDashboard() {
 	const { userData } = useUser();
@@ -41,8 +40,10 @@ export default function StudentDashboard() {
 	useEffect(() => {
 		async function fetchSummary() {
 			try {
-				const data = await getComplainSummary({ id: userData!.id });
-				// const data = await res.json();
+				const res = await fetch(
+					`/api/complaints/summary?studentId=${userData?.id}`
+				);
+				const data = await res.json();
 				setOverview({
 					resolved: data.resolvedComplaints || 0,
 					pending: data.pendingComplaints || 0,
