@@ -151,8 +151,10 @@ export default function MyComplaintsPage() {
 			setNewComplaint({ title: "", categoryId: "", description: "" });
 			setIsDialogOpen(false);
 			toast("✅ Complaint submitted successfully!");
-		} catch (err: any) {
-			toast(err.message);
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error ? err.message : "Something went wrong";
+			toast(errorMessage);
 		}
 	};
 
