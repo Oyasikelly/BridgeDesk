@@ -25,14 +25,13 @@ import {
 import { loginUser } from "@/lib/auth";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "react-hot-toast";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 
 export default function LoginPageContent() {
 	const { setUser } = useAuth();
 	const searchParams = useSearchParams();
 	// const [activeTab, setActiveTab] = useState<"student" | "teacher">("student");
 	const [isLoading, setIsLoading] = useState(false);
-	const Router = useRouter();
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",

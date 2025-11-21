@@ -4,15 +4,7 @@ import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/context/userContext";
 import { cn } from "@/lib/utils";
-
-interface Complaint {
-	id: string;
-	title: string;
-	description: string;
-	status: string;
-	categoryId: string;
-	category?: { name: string; adminId: string | null };
-}
+import type { Complaint } from "@/types/ComplaintList";
 
 interface ComplaintListProps {
 	selectedCategoryId: string | null;

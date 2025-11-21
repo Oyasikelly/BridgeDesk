@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, ReactHTMLElement } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Search, Send, User, MessageSquare, Paperclip, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -53,7 +53,6 @@ export default function AdminChatWithStudents() {
 	const [message, setMessage] = useState("");
 	const [loading, setLoading] = useState(true);
 	const [complaintsLoading, setComplaintsLoading] = useState(false);
-	const [messageReady, setMessageReady] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const [file, setFile] = useState<File | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -112,7 +111,6 @@ export default function AdminChatWithStudents() {
 
 		const fetchMessages = async () => {
 			try {
-				setMessageReady(false);
 				const res = await fetch(
 					`/api/admin/chat/messages?adminId=${adminId}&complaintId=${selectedComplaint?.id}`
 				);
@@ -122,7 +120,7 @@ export default function AdminChatWithStudents() {
 				if (!res.ok) throw new Error(data.error || "Failed to load messages");
 
 				// ✅ Map messages with senderType
-				const formattedMessages = data.map((msg: any) => ({
+				const formattedMessages = data.map((msg: Message) => ({
 					id: msg.id,
 					message: msg.message,
 					fileUrl: msg.fileUrl,
@@ -132,15 +130,13 @@ export default function AdminChatWithStudents() {
 						minute: "2-digit",
 					}),
 					status: msg.status,
-					senderType: msg.senderAdminId ? "ADMIN" : "STUDENT",
+					senderType: msg.senderType,
 				}));
 
 				setMessages(formattedMessages);
 			} catch (err) {
 				console.error(err);
 				toast.error("Failed to load messages");
-			} finally {
-				setMessageReady(true);
 			}
 		};
 
@@ -181,10 +177,6 @@ export default function AdminChatWithStudents() {
 		fetchStudents();
 	}, [adminId]);
 
-	// useEffect(() => {
-	// 	if (selectedStudent) fetchMessages(selectedStudent.id);
-	// }, [selectedStudent]);
-
 	// ✅ File upload
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selected = e.target.files?.[0];
@@ -222,8 +214,8 @@ export default function AdminChatWithStudents() {
 	async function handleSend() {
 		if (!selectedStudent || (!message.trim() && !file)) return;
 
-		let fileUrl = "";
-		let fileType = "";
+		const fileUrl: string | null = "";
+		const fileType: string | null = "";
 
 		const newMsg: Message = {
 			id: Date.now().toString(),
@@ -264,9 +256,13 @@ export default function AdminChatWithStudents() {
 						: msg
 				)
 			);
+			setUploading(true);
+			setFile(null);
 		} catch (err) {
 			console.error(err);
 			toast.error("Failed to send message");
+		} finally {
+			setUploading(false);
 		}
 	}
 	const filteredStudents = students.filter((s) =>

@@ -94,7 +94,7 @@ export default function MyComplaintsPage() {
 	useEffect(() => {
 		fetchComplaints();
 		fetchCategories();
-	}, []);
+	}, [userData?.student?.id]);
 
 	const getStatusBadge = (status: Complaint["status"]) => {
 		switch (status) {

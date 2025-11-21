@@ -11,7 +11,6 @@ import {
 	User,
 	Mail,
 	Phone,
-	MapPin,
 	Calendar,
 	Briefcase,
 	Shield,
@@ -20,6 +19,7 @@ import {
 import { useUser } from "@/context/userContext";
 import { Spinner } from "@/components/ui/spinner";
 import toast from "react-hot-toast";
+import Image from "next/image";
 
 type Profile = {
 	fullName: string;
@@ -37,7 +37,6 @@ export default function AdminProfilePage() {
 	const [editing, setEditing] = useState(false);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
-	const [uploading, setUploading] = useState(false);
 	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const { userData, setUserData, refreshUserData } = useUser();
 
@@ -135,8 +134,10 @@ export default function AdminProfilePage() {
 			setEditing(false);
 
 			toast.success("Profile updated successfully ✅");
-		} catch (err: any) {
-			toast.error(err.message || "Update failed ❌");
+		} catch (err: unknown) {
+			const errorMessage =
+				err instanceof Error ? err.message : "Update failed ❌";
+			toast.error(errorMessage);
 		} finally {
 			setSaving(false);
 		}
@@ -159,7 +160,7 @@ export default function AdminProfilePage() {
 					<CardHeader className="flex justify-between items-center">
 						<div className="flex items-center gap-4">
 							<div className="relative">
-								<img
+								<Image
 									src={profile.avatar}
 									alt="Profile"
 									className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"

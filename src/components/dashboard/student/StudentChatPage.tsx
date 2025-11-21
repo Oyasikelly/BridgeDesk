@@ -6,9 +6,15 @@ import SidebarCategories from "./components/SidebarCategories";
 import ComplaintList from "./components/ComplaintList";
 import ChatWithAdmin from "./chat-with-admin";
 
+import type { Category, Complaint } from "@/types/ComplaintList";
+
 export default function StudentChatPage() {
-	const [selectedCategory, setSelectedCategory] = useState<any>(null);
-	const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
+	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
+		null
+	);
+	const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
+		null
+	);
 	const [autoLoaded, setAutoLoaded] = useState(false);
 	const searchParams = useSearchParams();
 
@@ -60,7 +66,9 @@ export default function StudentChatPage() {
 			{selectedCategory && (
 				<ComplaintList
 					selectedCategoryId={selectedCategory.id}
-					onSelectComplaint={(complaint) => setSelectedComplaint(complaint)}
+					onSelectComplaint={(complaint: Complaint) =>
+						setSelectedComplaint(complaint)
+					}
 					selectedComplaintId={selectedComplaint?.id || null}
 				/>
 			)}

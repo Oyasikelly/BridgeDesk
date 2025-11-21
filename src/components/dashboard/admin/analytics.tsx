@@ -30,7 +30,16 @@ const COLORS = ["#2563eb", "#22c55e", "#eab308", "#ef4444"];
 
 export default function AdminAnalytics() {
 	const [loading, setLoading] = useState(true);
-	const [data, setData] = useState<any>(null);
+	const [data, setData] = useState<{
+		totalComplaints: number;
+		resolvedCount: number;
+		pendingCount: number;
+		activeStudents: number;
+		rejectedCount: number;
+		complaintStats: { name: string; value: number }[];
+		monthlyData: { month: string; complaints: number }[];
+		departmentData: { name: string; complaints: number }[];
+	} | null>(null);
 
 	useEffect(() => {
 		const fetchData = async () => {
@@ -151,12 +160,14 @@ export default function AdminAnalytics() {
 									cy="50%"
 									outerRadius={100}
 									label>
-									{data?.complaintStats?.map((_: any, index: number) => (
-										<Cell
-											key={index}
-											fill={COLORS[index % COLORS.length]}
-										/>
-									))}
+									{data.complaintStats.map(
+										(item: { name: string; value: number }, index: number) => (
+											<Cell
+												key={index}
+												fill={COLORS[index % COLORS.length]}
+											/>
+										)
+									)}
 								</Pie>
 								<Tooltip />
 							</PieChart>

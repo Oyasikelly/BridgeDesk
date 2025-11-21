@@ -181,11 +181,14 @@ export async function POST(request: NextRequest) {
 		}
 
 		return NextResponse.json({ error: "Invalid role" }, { status: 400 });
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Profile completion error:", error);
-		return NextResponse.json(
-			{ error: error.message || "Failed to complete profile" },
-			{ status: 500 }
-		);
+		const message =
+			error instanceof Error
+				? error.message
+				: typeof error === "string"
+				? error
+				: "Failed to complete profile";
+		return NextResponse.json({ error: message }, { status: 500 });
 	}
 }

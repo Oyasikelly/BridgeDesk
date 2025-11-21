@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Check, Link } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function Pricing() {

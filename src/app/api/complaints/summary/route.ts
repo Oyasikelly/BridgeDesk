@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -7,7 +7,7 @@ export async function GET(req: Request) {
 	try {
 		const { searchParams } = new URL(req.url);
 		const studentId = searchParams.get("studentId");
-		let filter: Prisma.ComplaintWhereInput = {};
+		// const filter: Prisma.ComplaintWhereInput = {};
 
 		if (!studentId) {
 			return NextResponse.json(

@@ -4,10 +4,10 @@ import { prisma } from "@/lib/db";
 // PATCH /api/admin/students/:id
 export async function PATCH(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const { id } = params;
+		const { id } = await params;
 		const { status } = await req.json();
 
 		const updated = await prisma.student.update({

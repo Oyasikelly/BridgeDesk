@@ -9,14 +9,11 @@ import { Separator } from "@/components/ui/separator";
 import {
 	Bell,
 	Shield,
-	UserCog,
 	Key,
 	Moon,
 	Database,
-	Globe,
 	LogOut,
 	Save,
-	Settings,
 	Server,
 } from "lucide-react";
 import { ModeToggle } from "@/components/ui/toggleMode-switch";

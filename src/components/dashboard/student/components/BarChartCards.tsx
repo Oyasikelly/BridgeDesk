@@ -22,7 +22,7 @@ export function BarChartCard({ student }: { student: { id: string } }) {
 			setData(json.data || []);
 		};
 		fetchData();
-	}, []);
+	}, [student.id]);
 
 	return (
 		<div className="bg-white p-6 rounded-xl shadow dark:bg-primary-foreground">

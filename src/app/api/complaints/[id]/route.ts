@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import type {
 	Complaint as PrismaComplaint,
@@ -22,12 +22,13 @@ export interface SuccessResponse {
 }
 
 export async function GET(
-	req: Request,
-	{ params }: { params: Params }
-): Promise<NextResponse> {
+	req: NextRequest,
+	{ params }: { params: Promise<Params> }
+): Promise<Response> {
 	try {
+		const { id } = await params;
 		const complaint = (await prisma.complaint.findUnique({
-			where: { id: params.id },
+			where: { id },
 			include: { category: true },
 		})) as ComplaintWithCategory | null;
 

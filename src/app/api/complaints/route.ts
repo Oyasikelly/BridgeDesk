@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 
 /**
  * POST → Submit a new complaint
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
 			{ message: "Complaint submitted successfully", complaint },
 			{ status: 201 }
 		);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error creating complaint:", error);
 		return NextResponse.json(
 			{ error: "Failed to create complaint" },
@@ -68,7 +69,7 @@ export async function GET(req: NextRequest) {
 		const studentId = searchParams.get("studentId");
 		const categoryId = searchParams.get("categoryId");
 
-		let filter: any = {};
+		const filter: Prisma.ComplaintWhereInput = {};
 		if (studentId) filter.studentId = studentId;
 		if (categoryId) filter.categoryId = categoryId;
 
@@ -112,7 +113,7 @@ export async function GET(req: NextRequest) {
 			},
 			{ status: 200 }
 		);
-	} catch (error: any) {
+	} catch (error: unknown) {
 		console.error("Error fetching complaints:", error);
 		return NextResponse.json(
 			{ error: "Failed to fetch complaints" },

@@ -59,8 +59,12 @@ export default function StudentSettingsPage() {
 			if (!res.ok) throw new Error(data.error || "Something went wrong");
 
 			toast(data.message);
-		} catch (err: any) {
-			toast(err.message);
+		} catch (err: unknown) {
+			if (err instanceof Error) {
+				toast(err.message);
+			} else {
+				toast("An unknown error occurred.");
+			}
 		}
 	}
 

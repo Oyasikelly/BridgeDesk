@@ -76,7 +76,7 @@ export async function PUT(
 				stream.end(buffer);
 			});
 
-			// @ts-ignore
+			// @ts-expect-error - Type 'string' is not assignable to type 'string | null'
 			avatarUrl = uploadResponse.secure_url;
 		}
 

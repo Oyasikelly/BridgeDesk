@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -17,12 +17,11 @@ import {
 	Calendar,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import Image from "next/image";
 
 export default function StudentProfilePage() {
 	const [editing, setEditing] = useState(false);
 	const [loading, setLoading] = useState(false);
-	const [uploading, setUploading] = useState(false);
-	const fileInputRef = useRef<HTMLInputElement | null>(null);
 	const { userData, setUserData, refreshUserData } = useUser();
 
 	type Profile = {
@@ -147,8 +146,8 @@ export default function StudentProfilePage() {
 			await refreshUserData();
 
 			toast.success("Profile updated successfully ✅");
-		} catch (err: any) {
-			toast.error(err.message || "Update failed ❌");
+		} catch (err: unknown) {
+			toast.error(err instanceof Error ? err.message : "Update failed ❌");
 		} finally {
 			setLoading(false);
 		}
@@ -160,7 +159,7 @@ export default function StudentProfilePage() {
 				<CardHeader className="flex justify-between items-center">
 					<div className="flex items-center gap-4">
 						<div className="relative">
-							<img
+							<Image
 								src={profile.avatar}
 								alt="Profile"
 								className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"

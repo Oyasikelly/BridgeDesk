@@ -119,7 +119,7 @@ export default function HelpCentre() {
 						))
 					) : (
 						<p className="text-gray-500 col-span-full text-center">
-							No results found for "{searchTerm}"
+							No results found for &quot;\{searchTerm} &quot;.
 						</p>
 					)}
 				</motion.div>

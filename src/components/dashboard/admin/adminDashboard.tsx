@@ -2,14 +2,12 @@
 
 import { useEffect, useState } from "react";
 import {
-	Users,
 	MessageSquare,
 	CheckCircle2,
 	AlertTriangle,
 	TrendingUp,
 	TrendingDown,
 	Search,
-	Filter,
 	Clock,
 } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -28,6 +26,7 @@ import { useUser } from "@/context/userContext";
 import { Spinner } from "@/components/ui/spinner";
 import { MdDangerous } from "react-icons/md";
 import Link from "next/link";
+import { Complaint } from "@/types/ComplaintList";
 
 export default function AdminDashboard() {
 	const [search, setSearch] = useState("");
@@ -117,7 +116,7 @@ export default function AdminDashboard() {
 
 	useEffect(() => {
 		fetchDashboard();
-	}, [userData]);
+	}, [userData, userData?.admin?.id]);
 
 	if (loading)
 		return (
@@ -282,20 +281,28 @@ export default function AdminDashboard() {
 						<tbody>
 							{dashboardData.recentComplaints
 								.filter(
-									(c: any) =>
+									(c: {
+										id: string;
+										studentName: string;
+										title: string;
+										status: string;
+										date: string;
+									}) =>
 										c.studentName
 											?.toLowerCase()
 											.includes(search.toLowerCase()) ||
 										c.title?.toLowerCase().includes(search.toLowerCase())
 								)
-								.map((complaint: any) => (
+								.map((complaint: Complaint) => (
 									<tr
 										key={complaint.id}
 										className="border-b hover:bg-ring transition">
 										<td className="py-3 px-4 font-semibold text-gray-700">
 											{complaint.id}
 										</td>
-										<td className="py-3 px-4">{complaint?.student}</td>
+										<td className="py-3 px-4">
+											{complaint?.student?.fullName}
+										</td>
 										<td className="py-3 px-4">{complaint.title}</td>
 										<td className="py-3 px-4">
 											{getStatusBadge(complaint?.status)}

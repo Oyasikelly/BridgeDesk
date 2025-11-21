@@ -30,7 +30,7 @@ export default function FooterSection() {
 								className="flex-1 px-4 py-2 text-sm focus:outline-none"
 							/>
 							<button className="bg-primary text-white p-2 rounded-full hover:opacity-90 transition">
-								<ArrowRight className="w-5 h-5" />
+								<ArrowRight className="w-5 h-5 text-white" />
 							</button>
 						</div>
 					</div>
@@ -40,18 +40,18 @@ export default function FooterSection() {
 						<h3 className="font-semibold mb-3 text-gray-900">Company</h3>
 						<ul className="space-y-2 text-sm">
 							<li>
-								<a
+								<Link
 									href="/"
 									className="hover:text-primary">
 									Home
-								</a>
+								</Link>
 							</li>
 							<li>
-								<a
+								<Link
 									href="/about-us"
 									className="hover:text-primary">
 									About
-								</a>
+								</Link>
 							</li>
 							<li>
 								<NavigationMenu>
@@ -78,18 +78,18 @@ export default function FooterSection() {
 								</NavigationMenu>
 							</li>
 							<li>
-								<a
+								<Link
 									href="/pricing"
 									className="hover:text-primary">
 									Pricing
-								</a>
+								</Link>
 							</li>
 							{/* <li>
-								<a
+								<Link
 									href="#"
 									className="hover:text-primary">
 									Team
-								</a>
+								</Link>
 							</li> */}
 						</ul>
 					</div>
@@ -99,32 +99,32 @@ export default function FooterSection() {
 						<h3 className="font-semibold mb-3 text-gray-900">Documentation</h3>
 						<ul className="space-y-2 text-sm">
 							<li>
-								<a
+								<Link
 									href="/help-centre"
 									className="hover:text-primary">
 									Help Centre
-								</a>
+								</Link>
 							</li>
 							<li>
-								<a
+								<Link
 									href="/contact"
 									className="hover:text-primary">
 									Contact
-								</a>
+								</Link>
 							</li>
 							<li>
-								<a
+								<Link
 									href="/faq"
 									className="hover:text-primary">
 									FAQ
-								</a>
+								</Link>
 							</li>
 							<li>
-								<a
+								<Link
 									href="/privacy-policy"
 									className="hover:text-primary">
 									Privacy Policy
-								</a>
+								</Link>
 							</li>
 						</ul>
 					</div>
@@ -134,32 +134,32 @@ export default function FooterSection() {
 						<h3 className="font-semibold mb-3 text-gray-900">Social</h3>
 						<ul className="space-y-2 text-sm">
 							<li>
-								<a
+								<Link
 									href="#"
 									className="hover:text-primary">
 									Facebook
-								</a>
+								</Link>
 							</li>
 							<li>
-								<a
+								<Link
 									href="#"
 									className="hover:text-primary">
 									Instagram
-								</a>
+								</Link>
 							</li>
 							<li>
-								<a
+								<Link
 									href="#"
 									className="hover:text-primary">
 									Youtube
-								</a>
+								</Link>
 							</li>
 							<li>
-								<a
+								<Link
 									href="#"
 									className="hover:text-primary">
 									Twitter
-								</a>
+								</Link>
 							</li>
 						</ul>
 					</div>
@@ -169,11 +169,11 @@ export default function FooterSection() {
 			{/* Bottom Footer Section */}
 			<div className="border-t border-gray-300 flex flex-col md:flex-row justify-between items-center px-10 md:px-20 py-5 text-sm text-foreground">
 				<p>© BridgeDesk. All Rights Reserved 2025</p>
-				<a
+				<Link
 					href="/terms-conditions"
 					className="hover:text-primary mt-2 md:mt-0">
 					Terms & Conditions
-				</a>
+				</Link>
 			</div>
 		</footer>
 	);

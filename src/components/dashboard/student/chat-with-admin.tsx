@@ -9,6 +9,7 @@ import MessageStat from "../MessageStat";
 import { MessageStatus } from "@prisma/client";
 import toast from "react-hot-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import Image from "next/image";
 
 interface Message {
 	id: string | number;
@@ -45,7 +46,7 @@ export default function ChatWithAdmin({
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 	const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 	const [uploadProgress, setUploadProgress] = useState<number | null>(null);
-	const [isUploading, setIsUploading] = useState(false);
+	// const [isUploading, setIsUploading] = useState(false);
 
 	// ✅ File selection and preview
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -102,7 +103,7 @@ export default function ChatWithAdmin({
 
 	useEffect(() => {
 		fetchMessages();
-	}, [complaintId, assignedAdminId]);
+	}, [complaintId, assignedAdminId, userData?.student?.id]);
 
 	// ✅ Send message (with file upload and progress)
 	const handleSend = async () => {
@@ -137,7 +138,7 @@ export default function ChatWithAdmin({
 		setInputValue("");
 
 		try {
-			setIsUploading(true);
+			// setIsUploading(true);
 			setUploadProgress(0);
 
 			const xhr = new XMLHttpRequest();
@@ -176,13 +177,13 @@ export default function ChatWithAdmin({
 				// ✅ Reset states here — hide progress bar & clear files
 				setSelectedFiles([]);
 				setUploadProgress(null);
-				setIsUploading(false);
+				// setIsUploading(false);
 			};
 
 			xhr.onerror = () => {
 				toast.error("Upload failed");
 				setUploadProgress(null);
-				setIsUploading(false);
+				// setIsUploading(false);
 			};
 
 			xhr.send(formData);
@@ -190,7 +191,7 @@ export default function ChatWithAdmin({
 			console.error(err);
 			toast.error("Failed to send message");
 			setUploadProgress(null);
-			setIsUploading(false);
+			// setIsUploading(false);
 		}
 	};
 
@@ -264,7 +265,7 @@ export default function ChatWithAdmin({
 												className="block">
 												{msg.fileUrl.match(/\.(jpeg|jpg|png|gif|webp)$/i) ? (
 													// ✅ Image thumbnail
-													<img
+													<Image
 														src={getFileUrl(msg.fileUrl)}
 														alt={msg.fileName || "Uploaded file"}
 														className="rounded-xl max-h-48 w-auto object-cover border border-gray-300 shadow-sm transition-transform duration-200 group-hover:scale-[1.03] group-hover:shadow-md"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
 	Search,
 	MessageSquare,
@@ -87,8 +87,8 @@ export default function AllComplaintsPage() {
 	const router = useRouter();
 	const { userData } = useUser();
 	const [loading, setLoading] = useState(true);
-	const printRef = useRef<HTMLDivElement>(null);
 
+	// ✅ Helper for colored badges
 	const getStatusBadge = (status: Complaint["status"]) => {
 		switch (status) {
 			case "PENDING":

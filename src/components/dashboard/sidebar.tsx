@@ -6,8 +6,6 @@ import {
 	User,
 	Settings,
 	LogOut,
-	Plus,
-	SwitchCamera,
 	ClipboardList,
 	MessageSquare,
 	Users,

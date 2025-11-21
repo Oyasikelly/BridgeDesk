@@ -4,10 +4,10 @@ import { prisma } from "@/lib/db";
 // PATCH: /api/admin/complaints/[id]
 export async function PATCH(
 	req: NextRequest,
-	{ params }: { params: { id: string } }
+	{ params }: { params: Promise<{ id: string }> }
 ) {
 	try {
-		const { id } = params;
+		const { id } = await params;
 		const { status } = await req.json();
 
 		if (!status) {
@@ -31,3 +31,15 @@ export async function PATCH(
 		);
 	}
 }
+
+// import { NextRequest } from 'next/server';
+
+// export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+//   const { id } = await params;
+//   // Implement your PATCH logic here using the id and req.
+//   // Return a Response or NextResponse.
+//   return new Response(JSON.stringify({ id }), {
+//     status: 200,
+//     headers: { 'Content-Type': 'application/json' },
+//   });
+// }

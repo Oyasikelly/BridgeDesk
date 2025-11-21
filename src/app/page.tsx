@@ -544,7 +544,7 @@ function Testimonials({ testimonials }: TestimonialsProps) {
 								</p>
 
 								<div className="flex justify-center md:justify-start items-center gap-4">
-									<img
+									<Image
 										src={testimonials[currentIndex].image}
 										alt={testimonials[currentIndex].name}
 										className="w-10 h-10 rounded-full"
