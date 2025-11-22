@@ -57,7 +57,7 @@ export default function StudentChatPage() {
 		<div className="flex gap-0 h-[85vh] max-w-7xl mx-auto rounded-xl border shadow-md overflow-hidden">
 			<SidebarCategories
 				onSelectCategory={(cat) => {
-					setSelectedCategory(cat);
+					setSelectedCategory(cat as Category);
 					setSelectedComplaint(null);
 				}}
 				selectedCategoryId={selectedCategory?.id || null}
