@@ -1,14 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import SidebarCategories from "./components/SidebarCategories";
 import ComplaintList from "./components/ComplaintList";
 import ChatWithAdmin from "./chat-with-admin";
 
 import type { Category, Complaint } from "@/types/ComplaintList";
+import { Spinner } from "@/components/ui/spinner";
 
-export default function StudentChatPage() {
+function StudentChatPageContent() {
 	const [selectedCategory, setSelectedCategory] = useState<Category | null>(
 		null
 	);
@@ -98,5 +99,21 @@ export default function StudentChatPage() {
 				)}
 			</div>
 		</div>
+	);
+}
+
+export default function StudentChatPage() {
+	return (
+		<Suspense
+			fallback={
+				<div className="flex items-center justify-center h-full text-gray-500">
+					<Spinner
+						size="md"
+						color="primary"
+					/>
+				</div>
+			}>
+			<StudentChatPageContent />
+		</Suspense>
 	);
 }
