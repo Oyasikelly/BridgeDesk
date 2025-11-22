@@ -84,9 +84,9 @@ export default function AboutUs() {
 						<div className="mt-10">
 							<Header />
 						</div>
-						<div className="h-screen flex flex-col justify-center px-20 text-background -mt-20">
+						<div className="h-screen flex flex-col justify-center px-5 md:px-20 text-background -mt-10 md:-mt-20">
 							<SlideInLeftWhenVisible>
-								<h1 className="text-5xl font-semibold max-w-3xl mb-6">
+								<h1 className="text-4xl lg:text-5xl font-semibold max-w-3xl mb-6">
 									Empowering Growth Through Innovation and Transparency
 								</h1>
 							</SlideInLeftWhenVisible>
@@ -103,7 +103,7 @@ export default function AboutUs() {
 
 				<section
 					id="our-story"
-					className="h-screen bg-background bg-background dark:bg-black text-foreground flex flex-col justify-center px-20">
+					className="h-screen bg-background bg-background dark:bg-black text-foreground flex flex-col justify-center px-5 md:px-20">
 					<div className="grid grid-col-1 md:grid-cols-2 justify-items-center gap-6">
 						<div className="flex flex-col justify-center">
 							<SlideInLeftWhenVisible>
@@ -164,7 +164,7 @@ function OurValues() {
 	return (
 		<section
 			id="our-values"
-			className="h-screen bg-ring text-background flex flex-col justify-center px-10 md:px-20 overflow-hidden">
+			className="h-screen bg-ring text-background flex flex-col justify-center px-5 md:px-20 overflow-hidden">
 			<div className="grid grid-col-1 md:grid-cols-2 items-center gap-6">
 				{/* LEFT IMAGE SLIDE */}
 				<div
@@ -188,7 +188,7 @@ function OurValues() {
 						</motion.div>
 					</AnimatePresence>
 					{/* Dots + Arrows */}
-					<div className="flex justify-between items-center mt-6">
+					<div className="flex justify-center items-center mt-6">
 						<div className="flex gap-2">
 							{values.map((_, index) => (
 								<GoDot
@@ -199,14 +199,14 @@ function OurValues() {
 								/>
 							))}
 						</div>
-						<div className="flex gap-4 text-xl">
+						<div className="flex gap-4 text-xl relative left-10 md:left-40">
 							<FaChevronLeft
 								onClick={handlePrev}
-								className="cursor-pointer hover:text-background/70"
+								className="cursor-pointer hover:text-primary/70 transition-all duration-300 hover:scale-110"
 							/>
 							<FaChevronRight
 								onClick={handleNext}
-								className="cursor-pointer hover:text-background/70"
+								className="cursor-pointer hover:text-primary/70 transition-all duration-300 hover:scale-110"
 							/>
 						</div>
 					</div>
@@ -217,9 +217,12 @@ function OurValues() {
 					initial={{ opacity: 0, y: 40 }}
 					whileInView={{ opacity: 1, y: 0 }}
 					transition={{ duration: 0.6 }}>
-					<h2 className="text-4xl font-semibold mb-4">
-						Our Core Value — {values[currentIndex].title}
+					<h2 className="text-2xl md:text-4xl font-semibold mb-4">
+						Our Core Values
 					</h2>
+					<p className="text-background/90  mb-0 md:mb-4 leading-relaxed">
+						<strong>{values[currentIndex].title}</strong>
+					</p>
 					<p className="text-background/90 mb-10">
 						{values[currentIndex].description}
 					</p>
@@ -234,7 +237,7 @@ function OurValues() {
 
 function MissionVision() {
 	return (
-		<section className="bg-foreground bg-background dark:bg-black text-foreground py-20 px-10 md:px-20">
+		<section className="bg-foreground bg-background dark:bg-black text-background/80 py-20 px-5 md:px-20">
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-16">
 				<div>
 					<SlideInLeftWhenVisible>
@@ -250,14 +253,14 @@ function MissionVision() {
 					</SlideInLeftWhenVisible>
 				</div>
 				<SlideInRightWhenVisible>
-					<p className="text-background/80 text-lg leading-relaxed">
+					<p className="text-lg leading-relaxed">
 						We aim to create meaningful change through innovation — helping
 						users communicate, collaborate, and grow with confidence.
 					</p>
 				</SlideInRightWhenVisible>
 			</div>
 
-			<div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+			<div className="grid grid-cols-1 md:grid-cols-3 gap-4 gap-10">
 				<div>
 					<SlideInLeftWhenVisible>
 						<FaUsers className="text-4xl mb-4" />
@@ -339,7 +342,7 @@ function Testimonials({ testimonials }: TestimonialsProps) {
 	};
 
 	return (
-		<section className="bg-[#121212] text-white px-6 py-16 relative overflow-hidden">
+		<section className="bg-[#121212] text-white px-5 py-16 relative overflow-hidden">
 			<FadeInWhenVisible>
 				<h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
 					What People Say About Us
@@ -385,7 +388,9 @@ function Testimonials({ testimonials }: TestimonialsProps) {
 									<Image
 										src={testimonials[currentIndex].image}
 										alt={testimonials[currentIndex].name}
-										className="w-10 h-10 rounded-full"
+										width={100}
+										height={100}
+										className="rounded-full object-cover"
 									/>
 									<div className="text-left">
 										<p className="font-semibold">

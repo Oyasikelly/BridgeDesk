@@ -113,7 +113,7 @@ export default function LoginPageContent() {
 					</div>
 				</header>
 
-				<div className="px-20 py-4">
+				<div className="px-5 md:px-20 py-4">
 					<Link href="/">
 						<button className="flex items-center gap-2 mb-8 text-sm font-medium hover:text-primary transition">
 							<ArrowLeft className="w-4 h-4" />

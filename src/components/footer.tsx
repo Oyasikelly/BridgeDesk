@@ -15,13 +15,13 @@ export default function FooterSection() {
 	return (
 		<footer className="bg-background dark:bg-ring text-foreground">
 			{/* Top Footer Section */}
-			<div className="bg-background dark:bg-ring text-gray-900 dark:text-foreground px-10 md:px-20 py-12 rounded-t-[2rem] shadow-sm">
+			<div className="bg-background dark:bg-ring text-gray-900 dark:text-foreground px-5 md:px-20 py-12 rounded-t-[2rem] shadow-sm">
 				<div className="grid md:grid-cols-4 gap-10">
 					{/* Brand & Newsletter */}
 					<div>
 						<h2 className="text-xl font-bold mb-3 text-primary">BridgeDesk.</h2>
 						<p className="mb-4 text-sm text-gray-700 dark:text-gray-300">
-							Stay in the loop and sign up for the Wardiere newsletter:
+							Stay in the loop and sign up for the BridgeDesk newsletter:
 						</p>
 						<div className="flex items-center border border-gray-400 rounded-full overflow-hidden w-full max-w-xs">
 							<input

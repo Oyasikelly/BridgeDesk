@@ -17,34 +17,41 @@ function StudentChatPageContent() {
 		null
 	);
 	const [autoLoaded, setAutoLoaded] = useState(false);
-	const searchParams = useSearchParams();
+	const [isMobile, setIsMobile] = useState(false);
+	const [mobileStep, setMobileStep] = useState<
+		"categories" | "complaints" | "chat"
+	>("categories");
 
+	const searchParams = useSearchParams();
 	const complaintId = searchParams.get("complaintId");
 	const adminId = searchParams.get("adminId");
 
-	// ✅ Auto-load complaint when opened via link with params
+	// Detect mobile/tablet
+	useEffect(() => {
+		const handleResize = () => setIsMobile(window.innerWidth < 1024);
+		handleResize();
+		window.addEventListener("resize", handleResize);
+		return () => window.removeEventListener("resize", handleResize);
+	}, []);
+
+	// Auto-load complaint (unchanged)
 	useEffect(() => {
 		const loadComplaint = async () => {
 			if (!complaintId || autoLoaded) return;
 			try {
 				const res = await fetch(`/api/complaints/${complaintId}`);
-				if (!res.ok) {
-					console.error("Fetch failed:", res.status);
-					throw new Error(`Failed to fetch complaint (${res.status})`);
-				}
+				if (!res.ok) throw new Error(`Failed: ${res.status}`);
 
-				// ✅ Ensure it's valid JSON before parsing
 				const contentType = res.headers.get("content-type");
-				if (!contentType || !contentType.includes("application/json")) {
-					throw new Error(
-						"Response is not JSON. Check your API route path or authentication."
-					);
+				if (!contentType?.includes("application/json")) {
+					throw new Error("Response not JSON");
 				}
 
 				const data = await res.json();
 
 				setSelectedComplaint(data.complaint);
 				setSelectedCategory(data.complaint.category);
+				setMobileStep("chat"); // auto-open chat on mobile
 				setAutoLoaded(true);
 			} catch (err) {
 				console.error("Error loading complaint:", err);
@@ -54,6 +61,71 @@ function StudentChatPageContent() {
 		loadComplaint();
 	}, [complaintId, autoLoaded]);
 
+	/* 
+	---------------------------------------------------
+		MOBILE LAYOUT (One component per screen)
+	---------------------------------------------------
+	*/
+	if (isMobile) {
+		return (
+			<>
+				<div className="h-[85vh] max-w-7xl mx-auto rounded-xl border shadow-md overflow-hidden relative">
+					{/* Back Button */}
+					{mobileStep !== "categories" && (
+						<button
+							onClick={() =>
+								setMobileStep(
+									mobileStep === "chat" ? "complaints" : "categories"
+								)
+							}
+							className="absolute top-3 right-1 bg-gray-200 transition-all duration-300 px-3 py-1 rounded-md text-sm z-50">
+							← Back
+						</button>
+					)}
+					{/* Step 1: Categories */}
+					{mobileStep === "categories" && (
+						<SidebarCategories
+							onSelectCategory={(cat) => {
+								setSelectedCategory(cat as Category);
+								setSelectedComplaint(null);
+								setMobileStep("complaints");
+							}}
+							selectedCategoryId={selectedCategory?.id || null}
+						/>
+					)}
+
+					{/* Step 2: Complaints */}
+					{mobileStep === "complaints" && selectedCategory && (
+						<ComplaintList
+							selectedCategoryId={selectedCategory.id}
+							onSelectComplaint={(complaint: Complaint) => {
+								setSelectedComplaint(complaint);
+								setMobileStep("chat");
+							}}
+							selectedComplaintId={selectedComplaint?.id || null}
+						/>
+					)}
+
+					{/* Step 3: Chat */}
+					{mobileStep === "chat" && (
+						<ChatWithAdmin
+							key={selectedComplaint?.id || complaintId}
+							complaintId={selectedComplaint?.id || complaintId || ""}
+							assignedAdminId={
+								selectedComplaint?.category?.adminId || adminId || ""
+							}
+						/>
+					)}
+				</div>
+			</>
+		);
+	}
+
+	/* 
+	---------------------------------------------------
+		DESKTOP LAYOUT (Your original layout untouched)
+	---------------------------------------------------
+	*/
 	return (
 		<div className="flex gap-0 h-[85vh] max-w-7xl mx-auto rounded-xl border shadow-md overflow-hidden">
 			<SidebarCategories
@@ -84,7 +156,6 @@ function StudentChatPageContent() {
 						}
 					/>
 				) : complaintId && adminId ? (
-					// ✅ Show chat directly if opened via link
 					<ChatWithAdmin
 						key={complaintId}
 						complaintId={complaintId}

@@ -18,7 +18,7 @@ export const services: Service[] = [
 	{
 		id: 1,
 		title: "Complaint Management",
-		url: "Complaint-Management",
+		url: "complaint-management",
 		img: "/testing-img.jpg",
 		description:
 			"Efficiently log and manage user complaints with an intuitive and easy-to-navigate dashboard that ensures no issue goes unnoticed.",
@@ -64,7 +64,7 @@ export const services: Service[] = [
 	{
 		id: 2,
 		title: "Complaint Tracking and Status",
-		url: "Complaint-Tracking-and-Status",
+		url: "complaint-tracking-and-status",
 		img: "/testing-img.jpg",
 		description:
 			"Monitor the progress of submitted complaints in real time, ensuring users stay informed at every stage of the resolution process.",
@@ -110,7 +110,7 @@ export const services: Service[] = [
 	{
 		id: 3,
 		title: "Administrative",
-		url: "Administrative",
+		url: "administrative",
 		img: "/testing-img.jpg",
 		description:
 			"Empower admins to manage users, assign tasks, and oversee complaint resolution workflows with control and accountability.",
@@ -156,7 +156,7 @@ export const services: Service[] = [
 	{
 		id: 4,
 		title: "System Utility",
-		url: "System-Utility",
+		url: "system-utility",
 		img: "/testing-img.jpg",
 		description:
 			"Provides core tools for maintaining, updating, and optimizing the performance of the BridgeDeck platform.",

@@ -187,7 +187,7 @@ export default function RegisterPageContent() {
 					</div>
 				</header>
 
-				<div className="px-20 py-4">
+				<div className="px-5 md:px-20 py-4">
 					<button
 						onClick={() => Router.back()}
 						className="flex items-center gap-2 mb-8 text-sm font-medium  hover:text-primary transition">

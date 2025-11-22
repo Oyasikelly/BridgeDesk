@@ -43,7 +43,7 @@ const testimonials = [
 		role: "Student, Local High",
 		testimony:
 			"I love how easy it is to navigate. Plus, I received a super fast response to my school portal issues!",
-		image: "https://randomuser.me/api/portraits/women/44.jpg",
+		image: "/women/44.jpg",
 	},
 	{
 		id: 2,
@@ -51,7 +51,7 @@ const testimonials = [
 		role: "Administrator, City College",
 		testimony:
 			"The support team is incredibly responsive and helpful! I couldn’t ask for better service.",
-		image: "https://randomuser.me/api/portraits/men/46.jpg",
+		image: "/men/46.jpg",
 	},
 ];
 export default function Home() {
@@ -76,9 +76,9 @@ export default function Home() {
 						<div className="mt-10">
 							<Header />
 						</div>
-						<div className="h-screen flex flex-col justify-center px-20 text-background -mt-20">
+						<div className="h-screen flex flex-col justify-center px-5 md:px-20 text-background -mt-10 md:-mt-20">
 							<SlideInLeftWhenVisible>
-								<h1 className="text-5xl font-semibold max-w-3xl mb-6">
+								<h1 className="text-4xl lg:text-5xl font-semibold max-w-3xl mb-6 ">
 									Streamline Your Complaint Management with Our Innovative
 									Tracking System
 								</h1>
@@ -97,7 +97,7 @@ export default function Home() {
 
 				<section
 					id="streamline-complains"
-					className="h-screen bg-background dark:bg-black text-foreground flex flex-col justify-center px-20">
+					className="h-screen bg-background dark:bg-black text-foreground flex flex-col justify-center px-5 md:px-20">
 					<div className="grid grid-col-1 md:grid-cols-2 justify-items-center gap-4 ">
 						<div className="flex flex-col justify-center">
 							<SlideInLeftWhenVisible>
@@ -120,8 +120,8 @@ export default function Home() {
 								<Image
 									src="/streamline-img.jpg"
 									alt="streamline-img"
-									width={400}
-									height={400}
+									width={300}
+									height={300}
 									className="object-cover"
 									priority
 								/>
@@ -174,7 +174,7 @@ function StreamlineComplains() {
 	return (
 		<section
 			id="streamline-complains"
-			className="h-screen bg-ring text-background flex flex-col justify-center px-10 md:px-20 overflow-hidden">
+			className="h-screen bg-ring text-background flex flex-col justify-center px-5 md:px-20 overflow-hidden">
 			<div className="grid grid-col-1 md:grid-cols-2 items-center gap-6">
 				{/* LEFT IMAGE SLIDE SECTION */}
 				<div
@@ -196,7 +196,7 @@ function StreamlineComplains() {
 								alt={complaintSlideObj[currentIndex].title}
 								width={800}
 								height={600}
-								className="w-1/2 rounded-xl object-cover shadow-lg"
+								className="w-full rounded-xl object-cover shadow-lg"
 								priority
 							/>
 						</motion.div>
@@ -242,11 +242,11 @@ function StreamlineComplains() {
 							<div className="flex gap-4 text-xl">
 								<FaChevronLeft
 									onClick={handlePrev}
-									className="cursor-pointer hover:text-background/70 transition-all duration-300 hover:scale-110"
+									className="cursor-pointer hover:text-primary/70 transition-all duration-300 hover:scale-110"
 								/>
 								<FaChevronRight
 									onClick={handleNext}
-									className="cursor-pointer hover:text-background/70 transition-all duration-300 hover:scale-110"
+									className="cursor-pointer hover:text-primary/70 transition-all duration-300 hover:scale-110"
 								/>
 							</div>
 						</div>
@@ -289,7 +289,7 @@ function ComplaintManagement() {
 	return (
 		<section
 			id="streamline-complains"
-			className="h-screen bg-background dark:bg-black text-background flex flex-col justify-center px-10 md:px-20 overflow-hidden">
+			className="h-screen bg-background dark:bg-black text-background flex flex-col justify-center px-5 md:px-20 overflow-hidden">
 			<div className="grid grid-col-1 md:grid-cols-2 items-center gap-6">
 				{/* LEFT IMAGE SLIDE SECTION */}
 				<div className="text-foreground h-full">
@@ -311,7 +311,7 @@ function ComplaintManagement() {
 						</p>
 					</FadeInWhenVisible>
 
-					<div className="flex justify-between items-center mt-8">
+					<div className="flex justify-between items-center gap-4 mt-8">
 						<SlideInLeftWhenVisible>
 							<div>
 								<h3 className="text-2xl mb-2">Quick Resolutions</h3>
@@ -362,7 +362,7 @@ function ComplaintManagement() {
 
 function Streamline() {
 	return (
-		<section className="bg-foreground dark:bg-ring text-background py-20 px-10 md:px-20">
+		<section className="bg-foreground dark:bg-ring text-background py-20 px-5 md:px-20">
 			<div className="mx-auto">
 				{/* Top Section */}
 
@@ -501,7 +501,7 @@ function Testimonials({ testimonials }: TestimonialsProps) {
 	};
 
 	return (
-		<section className="bg-[#121212] text-white px-6 py-16 relative overflow-hidden">
+		<section className="bg-[#121212] text-white px-5 py-16 relative overflow-hidden">
 			<FadeInWhenVisible>
 				<h2 className="text-3xl md:text-4xl font-bold text-center mb-2">
 					Customer testimonials
@@ -545,8 +545,10 @@ function Testimonials({ testimonials }: TestimonialsProps) {
 
 								<div className="flex justify-center md:justify-start items-center gap-4">
 									<Image
-										src={testimonials[currentIndex].image}
+										src={`https://randomuser.me/api/portraits/${testimonials[currentIndex].image}`}
 										alt={testimonials[currentIndex].name}
+										width={100}
+										height={100}
 										className="w-10 h-10 rounded-full"
 									/>
 									<div className="text-left">

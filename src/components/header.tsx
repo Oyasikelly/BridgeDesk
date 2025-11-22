@@ -23,7 +23,7 @@ export default function Header() {
 	const [isOpen, setIsOpen] = useState(false);
 
 	return (
-		<header className="fixed top-0 left-0 right-0 bg-transparent backdrop-blur-md  py-3 px-6 md:px-20 flex justify-between items-center z-30">
+		<header className="fixed top-0 left-0 right-0 bg-transparent backdrop-blur-md  py-3 px-5 md:px-20 flex justify-between w-[100vw] items-center z-30">
 			{/* Logo */}
 			<SlideInLeftWhenVisible>
 				<div
@@ -127,7 +127,7 @@ export default function Header() {
 									{services.map((service) => (
 										<li key={service.title}>
 											<Link
-												href={service.url}
+												href={`/services/${service.url}`}
 												className="block hover:text-foreground/70">
 												{service.title}
 											</Link>

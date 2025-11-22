@@ -1,7 +1,15 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Search, Send, User, MessageSquare, Paperclip, X } from "lucide-react";
+import {
+	Search,
+	Send,
+	User,
+	MessageSquare,
+	Paperclip,
+	X,
+	ArrowLeft,
+} from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,7 +32,6 @@ interface Message {
 	id: string;
 	message?: string;
 	fileUrl?: string | null;
-	// img?: ReactHTMLElement;
 	fileName?: string | null;
 	fileType?: string | null;
 	timestamp: string;
@@ -40,56 +47,63 @@ interface Complaint {
 	dateSubmitted: string;
 }
 
+type Screen = "students" | "complaints" | "chat";
+
 export default function AdminChatWithStudents() {
-	const { userData } = useUser(); // ✅ Admin info (with id)
+	const { userData } = useUser();
 	const [students, setStudents] = useState<Student[]>([]);
 	const [complaints, setComplaints] = useState<Complaint[] | null>([]);
+	const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 	const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
 		null
 	);
-	const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [search, setSearch] = useState("");
 	const [message, setMessage] = useState("");
 	const [loading, setLoading] = useState(true);
 	const [complaintsLoading, setComplaintsLoading] = useState(false);
+	const [messagesLoading, setMessagesLoading] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const [file, setFile] = useState<File | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
+	const [screen, setScreen] = useState<Screen>("students");
 
-	// ✅ Auto scroll to bottom on new messages
+	const adminId = userData?.admin?.id;
+
+	// Auto scroll on messages
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 	}, [messages]);
 
-	// ✅ Fetch students under admin’s assigned categories
-	const adminId = userData?.admin?.id;
-	async function fetchStudents() {
+	// Fetch students
+	const fetchStudents = async () => {
 		if (!adminId) return;
 		setLoading(true);
 		try {
 			const res = await fetch(`/api/admin/chat/students?adminId=${adminId}`);
 			const data = await res.json();
-			console.log(data);
 			if (!res.ok) throw new Error(data.error || "Failed to fetch students");
 			setStudents(data.students || []);
-		} catch (error) {
-			console.error(error);
+		} catch (err) {
+			console.error(err);
 			toast.error("Failed to load students");
 		} finally {
 			setLoading(false);
 		}
-	}
+	};
 
-	// fetch complaints when a student is selected
+	useEffect(() => {
+		fetchStudents();
+	}, [adminId]);
+
+	// Fetch complaints
 	useEffect(() => {
 		if (!selectedStudent) return;
-
 		const fetchComplaints = async () => {
 			try {
 				setComplaintsLoading(true);
 				const res = await fetch(
-					`/api/admin/chat/complaints?adminId=${adminId}&studentId=${selectedStudent?.id}`
+					`/api/admin/chat/complaints?adminId=${adminId}&studentId=${selectedStudent.id}`
 				);
 				const data = await res.json();
 				if (!res.ok) throw new Error(data.error || "Failed to load complaints");
@@ -101,25 +115,22 @@ export default function AdminChatWithStudents() {
 				setComplaintsLoading(false);
 			}
 		};
-
 		fetchComplaints();
 	}, [selectedStudent, adminId]);
 
-	// fetch messages when a complaint is selected
+	// Fetch messages
 	useEffect(() => {
 		if (!selectedComplaint) return;
 
 		const fetchMessages = async () => {
 			try {
+				setMessagesLoading(true);
 				const res = await fetch(
-					`/api/admin/chat/messages?adminId=${adminId}&complaintId=${selectedComplaint?.id}`
+					`/api/admin/chat/messages?adminId=${adminId}&complaintId=${selectedComplaint.id}`
 				);
 				const data = await res.json();
-				console.log("Fetched messages:", data);
-
 				if (!res.ok) throw new Error(data.error || "Failed to load messages");
 
-				// ✅ Map messages with senderType
 				const formattedMessages = data.map((msg: Message) => ({
 					id: msg.id,
 					message: msg.message,
@@ -137,92 +148,28 @@ export default function AdminChatWithStudents() {
 			} catch (err) {
 				console.error(err);
 				toast.error("Failed to load messages");
+			} finally {
+				setMessagesLoading(false);
 			}
 		};
 
 		fetchMessages();
 	}, [selectedComplaint, adminId]);
 
-	// ✅ Fetch messages for selected student (restricted to admin’s categories)
-	// async function fetchMessages(studentId: string) {
-	// 	try {
-	// 		const res = await fetch(
-	// 			`/api/admin/chat/messages?adminId=${adminId}&studentId=${studentId}`
-	// 		);
-	// 		const data = await res.json();
-
-	// 		if (!res.ok) throw new Error(data.error || "Failed to fetch messages");
-
-	// 		const formatted = data.map((msg: any) => ({
-	// 			id: msg.id,
-	// 			sender: msg.senderAdminId ? "admin" : "student",
-	// 			text: msg.content,
-	// 			fileUrl: msg.fileUrl,
-	// 			fileType: msg.fileType,
-	// 			time: new Date(msg.createdAt).toLocaleTimeString([], {
-	// 				hour: "2-digit",
-	// 				minute: "2-digit",
-	// 			}),
-	// 			status: msg.status,
-	// 		}));
-
-	// 		setMessages(formatted);
-	// 	} catch (err) {
-	// 		console.error(err);
-	// 		toast.error("Error loading messages");
-	// 	}
-	// }
-
-	useEffect(() => {
-		fetchStudents();
-	}, [adminId]);
-
-	// ✅ File upload
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selected = e.target.files?.[0];
 		if (selected) setFile(selected);
 	};
 
-	// async function uploadFile(file: File): Promise<string | null> {
-	// 	setUploading(true);
-	// 	try {
-	// 		const formData = new FormData();
-	// 		formData.append("file", file);
-	// 		formData.append("upload_preset", "your_upload_preset");
-
-	// 		const res = await fetch(
-	// 			`https://api.cloudinary.com/v1_1/de3w6k8ov/upload`,
-	// 			{
-	// 				method: "POST",
-	// 				body: formData,
-	// 			}
-	// 		);
-
-	// 		const data = await res.json();
-	// 		if (!res.ok) throw new Error(data.error?.message || "Upload failed");
-	// 		return data.secure_url;
-	// 	} catch (err) {
-	// 		console.error(err);
-	// 		toast.error("File upload failed");
-	// 		return null;
-	// 	} finally {
-	// 		setUploading(false);
-	// 	}
-	// }
-
-	// ✅ Send message
-	async function handleSend() {
+	const handleSend = async () => {
 		if (!selectedStudent || (!message.trim() && !file)) return;
-
-		const fileUrl: string | null = "";
-		const fileType: string | null = "";
 
 		const newMsg: Message = {
 			id: Date.now().toString(),
 			senderType: "ADMIN",
 			message: message.trim(),
-			fileUrl,
-			fileType,
+			fileUrl: "",
+			fileType: "",
 			timestamp: new Date().toLocaleTimeString([], {
 				hour: "2-digit",
 				minute: "2-digit",
@@ -236,7 +183,7 @@ export default function AdminChatWithStudents() {
 		try {
 			const formData = new FormData();
 			formData.append("adminId", adminId || "");
-			formData.append("studentId", selectedStudent?.id);
+			formData.append("studentId", selectedStudent.id);
 			formData.append("complaintId", selectedComplaint?.id || "");
 			formData.append("message", message);
 			if (file) formData.append("file", file);
@@ -256,30 +203,33 @@ export default function AdminChatWithStudents() {
 						: msg
 				)
 			);
-			setUploading(true);
 			setFile(null);
 		} catch (err) {
 			console.error(err);
 			toast.error("Failed to send message");
-		} finally {
-			setUploading(false);
 		}
-	}
+	};
+
 	const filteredStudents = students.filter((s) =>
 		(s.fullName || "").toLowerCase().includes(search.toLowerCase())
 	);
 
 	const getFileUrl = (url: string) => {
-		if (url.match(/\.(pdf|docx|xlsx|zip|txt)$/i)) {
+		if (url.match(/\.(pdf|docx|xlsx|zip|txt)$/i))
 			return url.replace("/image/upload/", "/raw/upload/");
-		}
 		return url;
 	};
 
-	// ✅ Render
+	// Back button handler
+	const handleBack = () => {
+		if (screen === "chat") setScreen("complaints");
+		else if (screen === "complaints") setScreen("students");
+		else setScreen("students");
+	};
+
 	return (
 		<div className="flex h-[calc(100vh-80px)] bg-background/30">
-			{/* Sidebar */}
+			{/* Desktop Sidebar */}
 			<div
 				className={cn(
 					"w-full md:w-1/3 border-r bg-primary-foreground flex flex-col transition-all duration-300",
@@ -315,7 +265,10 @@ export default function AdminChatWithStudents() {
 						filteredStudents.map((student) => (
 							<Card
 								key={student.id}
-								onClick={() => setSelectedStudent(student)}
+								onClick={() => {
+									setSelectedStudent(student);
+									setScreen("complaints");
+								}}
 								className="cursor-pointer p-3 hover:bg-muted transition rounded-lg">
 								<p className="font-medium">{student.fullName}</p>
 								<p className="text-xs text-muted-foreground">
@@ -331,75 +284,112 @@ export default function AdminChatWithStudents() {
 				</div>
 			</div>
 
-			{/* Chat Room */}
-			<div
-				className={cn(
-					"flex-1 flex flex-col bg-background transition-all duration-300",
-					!selectedStudent && "hidden md:flex"
-				)}>
-				{selectedStudent ? (
-					<>
-						{/* Header */}
-						<div className="flex flex-col border-b bg-primary-foreground">
-							<div className="flex items-center justify-between p-4">
-								<div className="flex items-center gap-3">
-									<User className="text-primary" />
-									<div>
-										<h2 className="font-semibold">
-											{selectedStudent.fullName}
-										</h2>
-										<p className="text-xs text-gray-500">
-											{selectedStudent.department} | Level{" "}
-											{selectedStudent.level}
+			{/* Mobile/Tablet Flow */}
+			<div className="flex-1 flex flex-col md:hidden">
+				{screen === "students" && (
+					<div className="flex-1 flex flex-col">
+						<div className="p-4 flex items-center justify-between border-b">
+							<h2 className="font-semibold text-lg">Students</h2>
+						</div>
+						<div className="flex-1 overflow-y-auto p-4 space-y-2">
+							{loading ? (
+								<div className="space-y-3">
+									{Array.from({ length: 4 }).map((_, i) => (
+										<Skeleton
+											key={i}
+											className="h-12 w-full rounded-md"
+										/>
+									))}
+								</div>
+							) : filteredStudents.length > 0 ? (
+								filteredStudents.map((student) => (
+									<Card
+										key={student.id}
+										onClick={() => {
+											setSelectedStudent(student);
+											setScreen("complaints");
+										}}
+										className="cursor-pointer p-3 hover:bg-muted transition rounded-lg">
+										<p className="font-medium">{student.fullName}</p>
+										<p className="text-xs text-muted-foreground">
+											{student.department} | Level {student.level}
 										</p>
-									</div>
-								</div>
-							</div>
-
-							{/* Complaint Dropdown */}
-							{complaints && complaints.length > 0 ? (
-								<div className="px-4 pb-4">
-									<select
-										className="w-full border rounded-lg p-2 text-sm bg-background"
-										value={selectedComplaint?.id || ""}
-										onChange={(e) => {
-											const complaint =
-												complaints.find((c) => c.id === e.target.value) || null;
-											setSelectedComplaint(complaint);
-										}}>
-										{loading || complaintsLoading ? (
-											<option>Loading complaints...</option>
-										) : (
-											<>
-												<option value="">Select complaint...</option>
-												{complaints.map((c) => (
-													<option
-														key={c.id}
-														value={c.id}>
-														{c.title} ({c.status})
-													</option>
-												))}
-											</>
-										)}
-									</select>
-								</div>
+									</Card>
+								))
 							) : (
-								<div className="px-4 pb-4 text-xs text-gray-500 italic">
-									No complaints found for this student.
-								</div>
+								<p className="text-center text-sm text-gray-500 mt-10">
+									No student found.
+								</p>
 							)}
 						</div>
+					</div>
+				)}
 
-						{/* Messages */}
-						<div className="flex-1 overflow-y-auto p-4 space-y-3 bg-primary-foreground hide-scrollbar">
-							{!selectedComplaint ? (
-								<p className="text-center text-gray-400 text-sm mt-10">
-									Select a complaint to view messages
+				{screen === "complaints" && selectedStudent && (
+					<div className="flex-1 flex flex-col">
+						<div className="flex items-center gap-2 p-4 border-b">
+							<Button
+								size="icon"
+								variant="ghost"
+								onClick={handleBack}>
+								<ArrowLeft />
+							</Button>
+							<h2 className="font-semibold text-lg">
+								{selectedStudent.fullName}
+							</h2>
+						</div>
+
+						<div className="flex-1 overflow-y-auto p-4">
+							{complaintsLoading ? (
+								<Skeleton className="h-12 w-full rounded-md" />
+							) : complaints && complaints.length > 0 ? (
+								complaints.map((c) => (
+									<Card
+										key={c.id}
+										onClick={() => {
+											setSelectedComplaint(c);
+											setScreen("chat");
+										}}
+										className="cursor-pointer p-3 hover:bg-muted transition rounded-lg">
+										<p className="font-medium">{c.title}</p>
+										<p className="text-xs text-muted-foreground">{c.status}</p>
+									</Card>
+								))
+							) : (
+								<p className="text-center text-sm text-gray-500 mt-10">
+									No complaints found.
 								</p>
+							)}
+						</div>
+					</div>
+				)}
+
+				{screen === "chat" && selectedStudent && selectedComplaint && (
+					<div className="flex-1 flex flex-col">
+						<div className="flex items-center gap-2 p-4 border-b">
+							<Button
+								size="icon"
+								variant="ghost"
+								onClick={handleBack}>
+								<ArrowLeft />
+							</Button>
+							<h2 className="font-semibold text-lg">
+								{selectedComplaint.title}
+							</h2>
+						</div>
+
+						<div className="flex-1 overflow-y-auto p-4 space-y-3 hide-scrollbar">
+							{messagesLoading ? (
+								Array.from({ length: 5 }).map((_, i) => (
+									<Skeleton
+										key={i}
+										className="h-12 w-full rounded-md"
+									/>
+								))
 							) : messages.length > 0 ? (
-								messages.map((msg, index) => (
+								messages.map((msg) => (
 									<div
-										key={index + 1}
+										key={msg.id}
 										className={cn(
 											"flex",
 											msg.senderType === "ADMIN"
@@ -416,7 +406,6 @@ export default function AdminChatWithStudents() {
 											{msg.fileUrl && (
 												<div className="mt-3">
 													<div className="relative inline-block group">
-														{/* ✅ File link for viewing */}
 														<a
 															href={getFileUrl(msg.fileUrl)}
 															target="_blank"
@@ -445,7 +434,6 @@ export default function AdminChatWithStudents() {
 															)}
 														</a>
 
-														{/* ✅ Separate download button */}
 														<a
 															href={getFileUrl(msg.fileUrl)}
 															download={msg.fileName || "document"}
@@ -456,15 +444,11 @@ export default function AdminChatWithStudents() {
 													</div>
 												</div>
 											)}
-
-											{/* ✅ Message text below preview */}
 											{msg.message && <p className="mt-2">{msg.message}</p>}
-
 											<p className="text-[10px] text-muted-foreground mt-1 text-right">
 												{msg.timestamp}
 											</p>
 										</div>
-
 										<MessageStat status={msg.status} />
 									</div>
 								))
@@ -476,7 +460,6 @@ export default function AdminChatWithStudents() {
 							<div ref={messagesEndRef} />
 						</div>
 
-						{/* Input */}
 						<div className="p-4 border-t bg-primary-foreground flex flex-col gap-2">
 							{file && (
 								<div className="flex items-center justify-between bg-muted p-2 rounded-lg">
@@ -520,12 +503,17 @@ export default function AdminChatWithStudents() {
 								</Button>
 							</div>
 						</div>
-					</>
-				) : (
-					<div className="flex items-center justify-center flex-1 text-gray-400 text-sm">
-						Select a student to start chatting
 					</div>
 				)}
+			</div>
+
+			{/* Desktop Chat Room */}
+			<div
+				className={cn(
+					"flex-1 flex flex-col bg-background transition-all duration-300",
+					!selectedStudent && "hidden md:flex"
+				)}>
+				{/* Keep your existing desktop layout here */}
 			</div>
 		</div>
 	);

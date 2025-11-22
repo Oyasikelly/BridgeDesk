@@ -268,6 +268,8 @@ export default function ChatWithAdmin({
 													<Image
 														src={getFileUrl(msg.fileUrl)}
 														alt={msg.fileName || "Uploaded file"}
+														width={400}
+														height={300}
 														className="rounded-xl max-h-48 w-auto object-cover border border-gray-300 shadow-sm transition-transform duration-200 group-hover:scale-[1.03] group-hover:shadow-md"
 													/>
 												) : (
