@@ -64,53 +64,7 @@ export default function StudentProfilePage() {
 		setProfile((prev) => ({ ...prev, [name]: value }));
 	};
 
-	// ✅ handle avatar upload
-	// const handleAvatarClick = () => {
-	// 	fileInputRef.current?.click();
-	// };
-
-	// const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-	// 	const file = e.target.files?.[0];
-	// 	if (!file) return;
-
-	// 	if (!file.type.startsWith("image/")) {
-	// 		toast.error("Please upload a valid image file");
-	// 		return;
-	// 	}
-
-	// 	try {
-	// 		setUploading(true);
-
-	// 		// --- OPTION A: Upload to Cloudinary ---
-	// 		const uploadData = new FormData();
-	// 		uploadData.append("file", file);
-	// 		uploadData.append("upload_preset", "your_upload_preset"); // replace
-	// 		const res = await fetch(
-	// 			`https://api.cloudinary.com/v1_1/de3w6k8ov/image/upload`,
-	// 			{
-	// 				method: "POST",
-	// 				body: uploadData,
-	// 			}
-	// 		);
-	// 		const data = await res.json();
-	// 		if (!res.ok) throw new Error("Upload failed");
-
-	// 		// set both the avatar URL and the avatar file for later saving
-	// 		setProfile((prev) => ({
-	// 			...prev,
-	// 			avatar: data.secure_url,
-	// 			avatarFile: file,
-	// 		}));
-
-	// 		toast.success("Profile picture uploaded ✅");
-	// 	} catch (err: any) {
-	// 		console.error(err);
-	// 		toast.error("Failed to upload image ❌");
-	// 	} finally {
-	// 		setUploading(false);
-	// 	}
-	// };
-
+	// handle save profile changes
 	const handleSave = async () => {
 		try {
 			setLoading(true);
@@ -169,27 +123,32 @@ export default function StudentProfilePage() {
 								alt="Profile"
 								className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"
 							/>
-							<label
-								htmlFor="avatar-upload"
-								className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full hover:bg-primary/80 cursor-pointer transition">
-								<Camera size={16} />
-							</label>
-							<input
-								id="avatar-upload"
-								type="file"
-								accept="image/*"
-								className="hidden"
-								onChange={(e) => {
-									const file = e.target.files?.[0];
-									if (file) {
-										setProfile((prev) => ({
-											...prev,
-											avatar: URL.createObjectURL(file),
-											avatarFile: file,
-										}));
-									}
-								}}
-							/>
+							{editing && (
+								<>
+									<label
+										htmlFor="avatar-upload"
+										className="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full hover:bg-primary/80 cursor-pointer transition">
+										<Camera size={16} />
+									</label>
+
+									<input
+										id="avatar-upload"
+										type="file"
+										accept="image/*"
+										className="hidden"
+										onChange={(e) => {
+											const file = e.target.files?.[0];
+											if (file) {
+												setProfile((prev) => ({
+													...prev,
+													avatar: URL.createObjectURL(file),
+													avatarFile: file,
+												}));
+											}
+										}}
+									/>
+								</>
+							)}
 						</div>
 
 						<div>
