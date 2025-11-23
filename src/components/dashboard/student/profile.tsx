@@ -269,6 +269,24 @@ export default function StudentProfilePage() {
 								})()}
 							</p>
 						</div>
+						<div>
+							<label className="text-sm text-gray-600 flex items-center gap-2">
+								<Calendar size={16} /> Last seen
+							</label>
+							<p className="font-medium text-foreground/80">
+								{(() => {
+									const date = new Date(profile.lastLogin || "N/A");
+									return date.toLocaleString("en-US", {
+										year: "numeric",
+										month: "long",
+										day: "numeric",
+										hour: "numeric",
+										minute: "2-digit",
+										hour12: true,
+									});
+								})()}
+							</p>
+						</div>
 					</div>
 				</CardContent>
 
