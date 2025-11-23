@@ -156,7 +156,7 @@ export default function StudentProfilePage() {
 	return (
 		<div className="p-6 bg-background min-h-screen">
 			<Card className="max-w-4xl mx-auto shadow-md border border-primary-foreground">
-				<CardHeader className="flex justify-between items-center">
+				<CardHeader className="flex justify-between items-center flex-wrap gap-4 md:flex-nowrap md:gap-0">
 					<div className="flex items-center gap-4">
 						<div className="relative">
 							<Image

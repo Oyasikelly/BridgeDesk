@@ -44,6 +44,7 @@ export default function RegisterPageContent() {
 		confirmPassword: "",
 		role: "STUDENT",
 		organizationId: "",
+		AdminRegistrationCode: "",
 	});
 	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
@@ -93,7 +94,8 @@ export default function RegisterPageContent() {
 			| "password"
 			| "confirmPassword"
 			| "role"
-			| "organizationId",
+			| "organizationId"
+			| "AdminRegistrationCode",
 		value: string
 	) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
@@ -133,7 +135,11 @@ export default function RegisterPageContent() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!validateForm()) return;
+		if (
+			!validateForm() ||
+			process.env.ADMIN_REGISTRATION_PASSWORD !== formData.AdminRegistrationCode
+		)
+			return;
 		setIsLoading(true);
 
 		try {
@@ -380,6 +386,25 @@ export default function RegisterPageContent() {
 												)}
 											</button>
 										</div>
+									</div>
+
+									<div className="space-y-2">
+										<Label htmlFor="AdminRegistrationCode">
+											Admin Registration Code
+										</Label>
+										<Input
+											id="AdminRegistrationCode"
+											type="text"
+											placeholder="Enter your Admin Registration Code"
+											value={formData.AdminRegistrationCode}
+											onChange={(e) =>
+												handleInputChange(
+													"AdminRegistrationCode",
+													e.target.value
+												)
+											}
+											disabled={isLoading}
+										/>
 									</div>
 
 									<Button

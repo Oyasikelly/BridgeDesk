@@ -31,7 +31,7 @@ export default function StudentCompleteProfilePage() {
 	const [formData, setFormData] = useState({
 		matricNo: "",
 		fullName: userData?.name,
-		email: "",
+		email: userData?.email,
 		phone: "",
 		department: "",
 		level: "",
@@ -190,7 +190,7 @@ export default function StudentCompleteProfilePage() {
 								type="email"
 								placeholder="Enter your email address"
 								value={formData.email}
-								onChange={(e) => handleInputChange("email", e.target.value)}
+								// onChange={(e) => handleInputChange("email", e.target.value)}
 								disabled={isLoading}
 							/>
 						</div>
