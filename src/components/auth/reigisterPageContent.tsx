@@ -129,17 +129,24 @@ export default function RegisterPageContent() {
 		if (!formData.organizationId) {
 			toast.error("Please select an school");
 			return false;
+		} else if (!formData.AdminRegistrationCode && formData.role === "ADMIN") {
+			toast.error("Please enter your Admin Registration Code");
+			return false;
 		}
 		return true;
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (!validateForm()) return;
 		if (
-			!validateForm() ||
-			process.env.ADMIN_REGISTRATION_PASSWORD !== formData.AdminRegistrationCode
-		)
+			process.env.ADMIN_REGISTRATION_PASSWORD !==
+				formData.AdminRegistrationCode &&
+			formData.role === "ADMIN"
+		) {
+			toast.error("Invalid Admin Registration Code");
 			return;
+		}
 		setIsLoading(true);
 
 		try {
@@ -388,24 +395,26 @@ export default function RegisterPageContent() {
 										</div>
 									</div>
 
-									<div className="space-y-2">
-										<Label htmlFor="AdminRegistrationCode">
-											Admin Registration Code
-										</Label>
-										<Input
-											id="AdminRegistrationCode"
-											type="text"
-											placeholder="Enter your Admin Registration Code"
-											value={formData.AdminRegistrationCode}
-											onChange={(e) =>
-												handleInputChange(
-													"AdminRegistrationCode",
-													e.target.value
-												)
-											}
-											disabled={isLoading}
-										/>
-									</div>
+									{formData.role === "ADMIN" && (
+										<div className="space-y-2">
+											<Label htmlFor="AdminRegistrationCode">
+												Admin Registration Code
+											</Label>
+											<Input
+												id="AdminRegistrationCode"
+												type="text"
+												placeholder="Enter your Admin Registration Code"
+												value={formData.AdminRegistrationCode}
+												onChange={(e) =>
+													handleInputChange(
+														"AdminRegistrationCode",
+														e.target.value
+													)
+												}
+												disabled={isLoading}
+											/>
+										</div>
+									)}
 
 									<Button
 										type="submit"
