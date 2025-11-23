@@ -15,6 +15,7 @@ export interface UserData {
 	organization: string | null;
 	organizationId: string | null;
 	departmentId: string | null;
+	lastLogin?: Date | null;
 	// Student data
 	student?: {
 		id: string;
@@ -30,6 +31,7 @@ export interface UserData {
 		joinedDate: Date;
 		totalComplaints: number;
 		resolvedComplaints: number;
+		lastLogin?: Date | null;
 	} | null;
 	// Admin data
 	admin?: {
@@ -105,6 +107,7 @@ export async function fetchCompleteUserData(
 						level: user.student.level,
 						hostel: user.student.hostel,
 						avatarUrl: user.student.avatarUrl,
+						lastLogin: user.lastLogin || null,
 						status: user.student.status,
 						joinedDate: user.student.joinedDate,
 						totalComplaints: user.student.totalComplaints,
@@ -123,7 +126,7 @@ export async function fetchCompleteUserData(
 						role: user.admin.role,
 						isActive: user.admin.isActive,
 						dateJoined: user.admin.dateJoined,
-						lastLogin: user.admin.lastLogin,
+						lastLogin: user.lastLogin || null,
 				  }
 				: null,
 		};
