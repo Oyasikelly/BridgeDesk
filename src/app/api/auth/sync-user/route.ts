@@ -28,6 +28,7 @@ export async function POST(request: NextRequest) {
 					organizationId,
 					isActive: true,
 					emailVerified,
+					lastLogin: new Date(),
 				},
 				include: {
 					student: true,
@@ -40,13 +41,14 @@ export async function POST(request: NextRequest) {
 				await prisma.student.create({
 					data: {
 						userId,
-						matricNo: userId,
+						matricNo: "",
 						fullName: name,
 						email,
-						department: "General",
-						level: "General",
+						department: "",
+						level: "",
 						status: "Active",
 						passwordHash,
+						lastLogin: userProfile.lastLogin,
 					},
 				});
 			} else if (role === "ADMIN") {
@@ -56,6 +58,7 @@ export async function POST(request: NextRequest) {
 						fullName: name,
 						email,
 						username: email,
+						lastLogin: userProfile.lastLogin,
 						passwordHash,
 					},
 				});
