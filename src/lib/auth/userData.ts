@@ -107,11 +107,11 @@ export async function fetchCompleteUserData(
 						level: user.student.level,
 						hostel: user.student.hostel,
 						avatarUrl: user.student.avatarUrl,
-						lastLogin: user.lastLogin || null,
 						status: user.student.status,
 						joinedDate: user.student.joinedDate,
 						totalComplaints: user.student.totalComplaints,
 						resolvedComplaints: user.student.resolvedComplaints,
+						lastLogin: user.lastLogin || null,
 				  }
 				: null,
 			admin: user.admin

@@ -35,6 +35,7 @@ export default function StudentProfilePage() {
 		joinedDate: string;
 		avatar: string;
 		avatarFile?: File | null;
+		lastLogin?: string | null;
 	};
 
 	const [profile, setProfile] = useState<Profile>({
@@ -51,6 +52,10 @@ export default function StudentProfilePage() {
 		})(),
 		avatar: userData?.student?.avatarUrl || "/assets/default-avatar.jpg",
 		avatarFile: null,
+		lastLogin:
+			userData?.student?.lastLogin instanceof Date
+				? userData?.student?.lastLogin.toISOString()
+				: userData?.student?.lastLogin ?? null,
 	});
 
 	// ✅ handle text field changes
