@@ -17,6 +17,7 @@ import {
 	Server,
 } from "lucide-react";
 import { ModeToggle } from "@/components/ui/toggleMode-switch";
+import Link from "next/link";
 
 export default function AdminSettingsPage() {
 	const [systemAlerts, setSystemAlerts] = useState(true);
@@ -229,11 +230,13 @@ export default function AdminSettingsPage() {
 							Log out of your admin account. You’ll need to log in again to
 							access system functionalities.
 						</p>
-						<Button
-							variant="destructive"
-							className="w-full">
-							Log Out
-						</Button>
+						<Link href="/logout">
+							<Button
+								variant="destructive"
+								className="w-full">
+								Log Out
+							</Button>
+						</Link>
 					</CardContent>
 				</Card>
 			</div>

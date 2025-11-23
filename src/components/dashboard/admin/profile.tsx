@@ -163,6 +163,8 @@ export default function AdminProfilePage() {
 								<Image
 									src={profile.avatar}
 									alt="Profile"
+									width={96}
+									height={96}
 									className="w-24 h-24 rounded-full object-cover border-4 border-primary/30"
 								/>
 								{editing && (
