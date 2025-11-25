@@ -91,7 +91,7 @@ model Admin {
 model Student {
   id                 String         @id @default(cuid())
   userId             String         @unique
-  matricNo           String         
+  matricNo           String
   fullName           String
   email              String         @unique
   phone              String?
