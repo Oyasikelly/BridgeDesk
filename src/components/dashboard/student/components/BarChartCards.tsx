@@ -7,22 +7,23 @@ import {
 	Tooltip,
 	ResponsiveContainer,
 } from "recharts";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 export function BarChartCard({ student }: { student: { id: string } }) {
-	const [data, setData] = useState([]);
-
-	useEffect(() => {
-		const fetchData = async () => {
+	// Fetch bar chart data with React Query (with caching)
+	const { data } = useQuery({
+		queryKey: ["complaintBarChart", student.id],
+		queryFn: async () => {
 			const res = await fetch(
 				`/api/complaints/barChartStats?studentId=${student.id}`
 			);
+			if (!res.ok) throw new Error("Failed to fetch chart data");
 			const json = await res.json();
-			console.log("Bar Chart Data:", student.id, json.data);
-			setData(json.data || []);
-		};
-		fetchData();
-	}, [student.id]);
+			return json.data || [];
+		},
+		enabled: !!student.id,
+		staleTime: 60 * 1000, // 1 minute
+	});
 
 	return (
 		<div className="bg-white p-6 rounded-xl shadow dark:bg-primary-foreground">
@@ -34,7 +35,7 @@ export function BarChartCard({ student }: { student: { id: string } }) {
 				<ResponsiveContainer
 					width="100%"
 					height="100%">
-					<BarChart data={data}>
+					<BarChart data={data || []}>
 						<XAxis dataKey="name" />
 						<YAxis />
 						<Tooltip />

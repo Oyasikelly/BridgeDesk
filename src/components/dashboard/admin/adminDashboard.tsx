@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 import {
 	MessageSquare,
 	CheckCircle2,
@@ -27,96 +27,87 @@ import { Spinner } from "@/components/ui/spinner";
 import { MdDangerous } from "react-icons/md";
 import Link from "next/link";
 import { Complaint } from "@/types/ComplaintList";
+import { useQuery } from "@tanstack/react-query";
+
+// Helper for colored badges (moved outside component for performance)
+const getStatusBadge = (status: string) => {
+	switch (status) {
+		case "RESOLVED":
+			return (
+				<Badge className="bg-green-500 hover:bg-green-600 text-white">
+					Resolved
+				</Badge>
+			);
+		case "IN_PROGRESS":
+			return (
+				<Badge className="bg-blue-500 hover:bg-blue-600 text-white">
+					In Progress
+				</Badge>
+			);
+		case "PENDING":
+			return (
+				<Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
+					Pending
+				</Badge>
+			);
+		case "REJECTED":
+			return (
+				<Badge className="bg-red-500 hover:bg-red-600 text-white">
+					Rejected
+				</Badge>
+			);
+		default:
+			return <Badge>{status}</Badge>;
+	}
+};
 
 export default function AdminDashboard() {
 	const [search, setSearch] = useState("");
 	const { userData } = useUser();
-	const [loading, setLoading] = useState(true);
 
-	const [dashboardData, setDashboardData] = useState({
-		totalComplaints: 0,
-		resolvedCount: 0,
-		pendingCount: 0,
-		inProgressCount: 0,
-		rejectedCount: 0,
-		recentComplaints: [],
-		chartData: [],
-	});
+	// Fetch Admin Dashboard Data with React Query (with caching)
+	const { data: dashboardData, isLoading: loading } = useQuery({
+		queryKey: ["adminDashboard", userData?.admin?.id],
+		queryFn: async () => {
+			if (!userData?.admin?.id) throw new Error("No admin ID");
 
-	// ✅ Helper for colored badges
-	const getStatusBadge = (status: string) => {
-		switch (status) {
-			case "RESOLVED":
-				return (
-					<Badge className="bg-green-500 hover:bg-green-600 text-white">
-						Resolved
-					</Badge>
-				);
-			case "IN_PROGRESS":
-				return (
-					<Badge className="bg-blue-500 hover:bg-blue-600 text-white">
-						In Progress
-					</Badge>
-				);
-			case "PENDING":
-				return (
-					<Badge className="bg-yellow-500 hover:bg-yellow-600 text-white">
-						Pending
-					</Badge>
-				);
-			case "REJECTED":
-				return (
-					<Badge className="bg-red-500 hover:bg-red-600 text-white">
-						Rejected
-					</Badge>
-				);
-			default:
-				return <Badge>{status}</Badge>;
-		}
-	};
-
-	// ✅ Fetch Admin Dashboard Data
-	const fetchDashboard = async () => {
-		if (!userData?.admin?.id) return;
-
-		try {
 			const res = await fetch(
 				`/api/admin/dashboard?adminId=${userData.admin.id}`
 			);
 			if (!res.ok) throw new Error(`Failed to fetch (${res.status})`);
 
 			const data = await res.json();
-			console.log("Dashboard data:", data);
 			const { stats, recentComplaints, chartData } = data;
 
-			// ✅ Destructure stats
-			const {
-				totalComplaints,
-				resolvedCount,
-				pendingCount,
-				inProgressCount,
-				rejectedCount,
-			} = stats;
-
-			setDashboardData({
-				totalComplaints,
-				resolvedCount,
-				pendingCount,
-				inProgressCount,
-				rejectedCount,
+			return {
+				totalComplaints: stats.totalComplaints,
+				resolvedCount: stats.resolvedCount,
+				pendingCount: stats.pendingCount,
+				inProgressCount: stats.inProgressCount,
+				rejectedCount: stats.rejectedCount,
 				recentComplaints,
 				chartData,
-			});
-		} catch (err) {
-			console.error("Error loading dashboard:", err);
-		} finally {
-			setLoading(false);
-		}
-	};
+			};
+		},
+		enabled: !!userData?.admin?.id,
+		staleTime: 30 * 1000, // 30 seconds
+	});
 
-	useEffect(() => {
-		fetchDashboard();
-	}, [userData, userData?.admin?.id]);
+	// Filter complaints based on search (memoized for performance)
+	const filteredComplaints = useMemo(() => {
+		if (!dashboardData?.recentComplaints) return [];
+		return dashboardData.recentComplaints.filter(
+			(c: {
+				id: string;
+				studentName: string;
+				title: string;
+				status: string;
+				date: string;
+			}) =>
+				c.studentName?.toLowerCase().includes(search.toLowerCase()) ||
+				c.title?.toLowerCase().includes(search.toLowerCase())
+		);
+	}, [dashboardData?.recentComplaints, search]);
 
 	if (loading)
 		return (
@@ -135,11 +126,6 @@ export default function AdminDashboard() {
 			<div className="flex justify-between items-center mb-8">
 				<h1 className="text-3xl font-bold">Admin Dashboard</h1>
 				<div className="flex gap-3">
-					{/* <Button
-						variant="outline"
-						className="flex items-center gap-2">
-						<Filter className="h-4 w-4" /> Filter
-					</Button> */}
 					<Link href="/admin/all-complaints">
 						<Button className="bg-primary text-white hover:bg-primary/90">
 							<MessageSquare className="h-4 w-4 mr-2" /> View All Complaints
@@ -157,7 +143,7 @@ export default function AdminDashboard() {
 					</CardHeader>
 					<CardContent>
 						<p className="text-3xl font-bold">
-							{dashboardData.totalComplaints}
+							{dashboardData?.totalComplaints || 0}
 						</p>
 						<p className="text-sm text-gray-500 flex items-center gap-1">
 							<TrendingUp className="h-3 w-3 text-green-500" /> Updated
@@ -172,9 +158,12 @@ export default function AdminDashboard() {
 						<CardTitle>Resolved Issues</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-3xl font-bold">{dashboardData.resolvedCount}</p>
+						<p className="text-3xl font-bold">
+							{dashboardData?.resolvedCount || 0}
+						</p>
 						<p className="text-sm text-gray-500 flex items-center gap-1">
-							<TrendingUp className="h-3 w-3 text-green-500" /> Up-to-date stats
+							<TrendingUp className="h-3 w-3 text-green-500" /> Up-to-date
+							stats
 						</p>
 					</CardContent>
 				</Card>
@@ -185,7 +174,9 @@ export default function AdminDashboard() {
 						<CardTitle>Pending Complaints</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-3xl font-bold">{dashboardData.pendingCount}</p>
+						<p className="text-3xl font-bold">
+							{dashboardData?.pendingCount || 0}
+						</p>
 						<p className="text-sm text-gray-500 flex items-center gap-1">
 							<TrendingDown className="h-3 w-3 text-red-500" /> Still awaiting
 							action
@@ -198,7 +189,9 @@ export default function AdminDashboard() {
 						<CardTitle>Rejected Complaints</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<p className="text-3xl font-bold">{dashboardData.rejectedCount}</p>
+						<p className="text-3xl font-bold">
+							{dashboardData?.rejectedCount || 0}
+						</p>
 						<p className="text-sm text-gray-500 flex items-center gap-1">
 							<MdDangerous className="h-3 w-3 text-red-500" />
 							Rejected complaints
@@ -213,7 +206,7 @@ export default function AdminDashboard() {
 					</CardHeader>
 					<CardContent>
 						<p className="text-3xl font-bold">
-							{dashboardData.inProgressCount}
+							{dashboardData?.inProgressCount || 0}
 						</p>
 						<p className="text-sm text-gray-500 flex items-center gap-1">
 							<TrendingUp className="h-3 w-3 text-blue-500" /> Currently being
@@ -233,7 +226,7 @@ export default function AdminDashboard() {
 						<ResponsiveContainer
 							width="100%"
 							height="100%">
-							<BarChart data={dashboardData.chartData}>
+							<BarChart data={dashboardData?.chartData || []}>
 								<XAxis dataKey="month" />
 								<YAxis />
 								<Tooltip />
@@ -279,39 +272,25 @@ export default function AdminDashboard() {
 							</tr>
 						</thead>
 						<tbody>
-							{dashboardData.recentComplaints
-								.filter(
-									(c: {
-										id: string;
-										studentName: string;
-										title: string;
-										status: string;
-										date: string;
-									}) =>
-										c.studentName
-											?.toLowerCase()
-											.includes(search.toLowerCase()) ||
-										c.title?.toLowerCase().includes(search.toLowerCase())
-								)
-								.map((complaint: Complaint) => (
-									<tr
-										key={complaint.id}
-										className="border-b hover:bg-ring transition">
-										<td className="py-3 px-4 font-semibold text-gray-700">
-											{complaint.id}
-										</td>
-										<td className="py-3 px-4">
-											{complaint?.student?.fullName}
-										</td>
-										<td className="py-3 px-4">{complaint.title}</td>
-										<td className="py-3 px-4">
-											{getStatusBadge(complaint?.status)}
-										</td>
-										<td className="py-3 px-4">
-											{new Date(complaint?.date).toLocaleDateString()}
-										</td>
-									</tr>
-								))}
+							{filteredComplaints.map((complaint: Complaint) => (
+								<tr
+									key={complaint.id}
+									className="border-b hover:bg-ring transition">
+									<td className="py-3 px-4 font-semibold text-gray-700">
+										{complaint.id}
+									</td>
+									<td className="py-3 px-4">
+										{complaint?.student?.fullName}
+									</td>
+									<td className="py-3 px-4">{complaint.title}</td>
+									<td className="py-3 px-4">
+										{getStatusBadge(complaint?.status)}
+									</td>
+									<td className="py-3 px-4">
+										{new Date(complaint?.date).toLocaleDateString()}
+									</td>
+								</tr>
+							))}
 						</tbody>
 					</table>
 				</CardContent>

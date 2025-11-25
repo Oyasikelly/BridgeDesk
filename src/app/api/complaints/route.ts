@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
 			include: { admin: true },
 		});
 
-		console.log("Fetched Category:", category);
 		if (!category) {
 			return NextResponse.json(
 				{ error: "Invalid category selected" },
@@ -33,6 +32,21 @@ export async function POST(req: NextRequest) {
 
 		const adminId = category.admin?.id || null;
 
+		// Fetch student to get the associated user's departmentId
+		const student = await prisma.student.findUnique({
+			where: { id: studentId },
+			include: { user: true },
+		});
+
+		if (!student) {
+			return NextResponse.json(
+				{ error: "Student not found" },
+				{ status: 404 }
+			);
+		}
+
+		const departmentId = student.user.departmentId || null;
+
 		const complaint = await prisma.complaint.create({
 			data: {
 				title,
@@ -41,7 +55,7 @@ export async function POST(req: NextRequest) {
 				studentId,
 				status: "PENDING",
 				adminId,
-				departmentId: studentId?.departmentId || null,
+				departmentId,
 			},
 			include: {
 				category: true,
@@ -55,7 +69,6 @@ export async function POST(req: NextRequest) {
 			{ status: 201 }
 		);
 	} catch (error: unknown) {
-		console.error("Error creating complaint:", error);
 		return NextResponse.json(
 			{ error: "Failed to create complaint" },
 			{ status: 500 }

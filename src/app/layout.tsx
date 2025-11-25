@@ -6,6 +6,8 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "@/context/AuthContext";
 import { UserProvider } from "@/context/userContext";
 import { FocusProvider } from "@/context/FocusContext";
+import { QueryProvider } from "@/components/query-provider";
+
 const geistSans = Geist({
 	variable: "--font-geist-sans",
 	subsets: ["latin"],
@@ -34,23 +36,25 @@ export default function RootLayout({
 		<html lang="en">
 			<body
 				className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				<AuthProvider>
-					<UserProvider>
-						<FocusProvider>
-							<ThemeProvider
-								attribute="class"
-								defaultTheme="system"
-								enableSystem
-								disableTransitionOnChange>
-								{children}
-								<Toaster
-									position="top-right"
-									reverseOrder={false}
-								/>
-							</ThemeProvider>
-						</FocusProvider>
-					</UserProvider>
-				</AuthProvider>
+				<QueryProvider>
+					<AuthProvider>
+						<UserProvider>
+							<FocusProvider>
+								<ThemeProvider
+									attribute="class"
+									defaultTheme="system"
+									enableSystem
+									disableTransitionOnChange>
+									{children}
+									<Toaster
+										position="top-right"
+										reverseOrder={false}
+									/>
+								</ThemeProvider>
+							</FocusProvider>
+						</UserProvider>
+					</AuthProvider>
+				</QueryProvider>
 			</body>
 		</html>
 	);

@@ -2,7 +2,7 @@
 import { DashboardCards } from "@/components/dashboard/student/components/DashboardCard";
 import { BarChartCard } from "./components/BarChartCards";
 import { useUser } from "@/context/userContext";
-import { useEffect, useState, ReactNode } from "react";
+import { useMemo, ReactNode } from "react";
 import {
 	CheckCircle2,
 	Clock,
@@ -11,96 +11,95 @@ import {
 	TrendingUp,
 } from "lucide-react";
 import { Spinner } from "@/components/ui/spinner";
+import { useQuery } from "@tanstack/react-query";
+
+type DashboardCardProps = {
+	title: string;
+	desc: string;
+	icon: ReactNode;
+	trend: ReactNode;
+	value: number;
+};
 
 export default function StudentDashboard() {
 	const { userData } = useUser();
-	const [loading, setLoading] = useState(true);
 
-	type DashboardCardProps = {
-		title: string;
-		desc: string;
-		icon: ReactNode;
-		trend: ReactNode;
-		value: number;
-	};
+	// Fetch student complaint summary with React Query (with caching)
+	const { data, isLoading: loading } = useQuery({
+		queryKey: ["studentComplaintSummary", userData?.id],
+		queryFn: async () => {
+			if (!userData?.id) throw new Error("No user ID");
 
-	type OverviewProps = {
-		resolved: number;
-		pending: number;
-		department: { department: string; percentage: number }[];
-	};
+			const res = await fetch(
+				`/api/complaints/summary?studentId=${userData.id}`
+			);
+			if (!res.ok) throw new Error(`Failed to fetch (${res.status})`);
 
-	const [cards, setCards] = useState<DashboardCardProps[]>([]);
-	const [overview, setOverview] = useState<OverviewProps>({
-		resolved: 0,
-		pending: 0,
-		department: [],
+			return await res.json();
+		},
+		enabled: !!userData?.id,
+		staleTime: 30 * 1000, // 30 seconds
 	});
 
-	useEffect(() => {
-		async function fetchSummary() {
-			try {
-				const res = await fetch(
-					`/api/complaints/summary?studentId=${userData?.id}`
-				);
-				const data = await res.json();
-				setOverview({
-					resolved: data.resolvedComplaints || 0,
-					pending: data.pendingComplaints || 0,
-					department: data.byDepartment || [],
-				});
-				setCards([
-					{
-						title: "Total Complaints",
-						desc: "All complaints you’ve submitted so far",
-						icon: <MessageSquare className="text-primary" />,
-						trend: <TrendingUp className="text-primary/80" />,
-						value: data.totalComplaints || 0,
-					},
-					{
-						title: "Resolved Complaints",
-						desc: "Complaints attended to by the admin",
-						icon: <CheckCircle2 className="text-green-500" />,
-						trend: <TrendingUp className="text-green-500" />,
-						value: data.resolvedComplaints || 0,
-					},
-					{
-						title: "Pending Complaints",
-						desc: "Awaiting admin response or feedback",
-						icon: <Clock className="text-yellow-500" />,
-						trend: <TrendingDown className="text-red-500" />,
-						value: data.pendingComplaints || 0,
-					},
-					{
-						title: "Rejected Complaints",
-						desc: "Complaints that were rejected",
-						icon: <TrendingDown className="text-red-500" />,
-						trend: <TrendingDown className="text-red-500" />,
-						value: data.RejectedComplaints || 0,
-					},
-					{
-						title: "Complaint In Progress",
-						desc: "Complaints currently being addressed",
-						icon: <Clock className="text-yellow-500" />,
-						trend: <TrendingUp className="text-yellow-500" />,
-						value: data.InProgressComplaints || 0,
-					},
-					{
-						title: "Departments Involved",
-						desc: "Departments handling your complaints",
-						icon: <MessageSquare className="text-purple-500" />,
-						trend: <TrendingUp className="text-purple-500" />,
-						value: data.byDepartment?.length,
-					},
-				]);
-			} catch (err) {
-				console.error("Error fetching complaint summary:", err);
-			} finally {
-				setLoading(false);
-			}
-		}
-		if (userData?.id) fetchSummary();
-	}, [userData]);
+	// Memoize cards to prevent recreation on every render
+	const cards: DashboardCardProps[] = useMemo(() => {
+		if (!data) return [];
+
+		return [
+			{
+				title: "Total Complaints",
+				desc: "All complaints you've submitted so far",
+				icon: <MessageSquare className="text-primary" />,
+				trend: <TrendingUp className="text-primary/80" />,
+				value: data.totalComplaints || 0,
+			},
+			{
+				title: "Resolved Complaints",
+				desc: "Complaints attended to by the admin",
+				icon: <CheckCircle2 className="text-green-500" />,
+				trend: <TrendingUp className="text-green-500" />,
+				value: data.resolvedComplaints || 0,
+			},
+			{
+				title: "Pending Complaints",
+				desc: "Awaiting admin response or feedback",
+				icon: <Clock className="text-yellow-500" />,
+				trend: <TrendingDown className="text-red-500" />,
+				value: data.pendingComplaints || 0,
+			},
+			{
+				title: "Rejected Complaints",
+				desc: "Complaints that were rejected",
+				icon: <TrendingDown className="text-red-500" />,
+				trend: <TrendingDown className="text-red-500" />,
+				value: data.RejectedComplaints || 0,
+			},
+			{
+				title: "Complaint In Progress",
+				desc: "Complaints currently being addressed",
+				icon: <Clock className="text-yellow-500" />,
+				trend: <TrendingUp className="text-yellow-500" />,
+				value: data.InProgressComplaints || 0,
+			},
+			{
+				title: "Departments Involved",
+				desc: "Departments handling your complaints",
+				icon: <MessageSquare className="text-purple-500" />,
+				trend: <TrendingUp className="text-purple-500" />,
+				value: data.byDepartment?.length || 0,
+			},
+		];
+	}, [data]);
+
+	// Memoize overview data
+	const overview = useMemo(
+		() => ({
+			resolved: data?.resolvedComplaints || 0,
+			pending: data?.pendingComplaints || 0,
+			department: data?.byDepartment || [],
+		}),
+		[data]
+	);
 
 	return (
 		<div className="flex min-h-screen bg-background">
@@ -165,13 +164,15 @@ export default function StudentDashboard() {
 									/>
 								</div>
 							) : overview.department.length > 0 ? (
-								overview.department.map((dept, idx) => (
-									<p
-										key={idx}
-										className="text-sm text-foreground/60">
-										{dept.percentage}% - {dept.department}
-									</p>
-								))
+								overview.department.map(
+									(dept: { department: string; percentage: number }, idx: number) => (
+										<p
+											key={idx}
+											className="text-sm text-foreground/60">
+											{dept.percentage}% - {dept.department}
+										</p>
+									)
+								)
 							) : (
 								<p className="text-sm text-foreground/50">
 									No department data available

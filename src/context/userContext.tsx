@@ -295,19 +295,19 @@ export function UserProvider({ children }: { children: ReactNode }) {
 		}
 	};
 
-	return (
-		<UserContext.Provider
-			value={{
-				userData,
-				loading,
-				refreshUserData,
-				logout,
-				handlePostLoginRedirection,
-				setUserData,
-			}}>
-			{children}
-		</UserContext.Provider>
+	const value = React.useMemo(
+		() => ({
+			userData,
+			loading,
+			refreshUserData,
+			logout,
+			handlePostLoginRedirection,
+			setUserData,
+		}),
+		[userData, loading, refreshUserData, handlePostLoginRedirection]
 	);
+
+	return <UserContext.Provider value={value}>{children}</UserContext.Provider>;
 }
 
 export function useUser() {

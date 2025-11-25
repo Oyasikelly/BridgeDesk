@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import { supabase } from "./supabase";
 import {
 	User,
@@ -125,11 +126,27 @@ export async function registerUser(
 		});
 
 		if (error) {
-			throw new Error(error.message);
+			// Handle specific Supabase errors
+			const errorMessage = error.message || "Registration failed. Please try again.";
+			
+			// Check for common error cases
+			if (errorMessage.includes("already registered") || errorMessage.includes("already exists")) {
+				toast.error("This email is already registered. Please login instead.");
+			} else if (errorMessage.includes("invalid email")) {
+				toast.error("Please enter a valid email address.");
+			} else if (errorMessage.includes("password")) {
+				toast.error("Password must be at least 6 characters long.");
+			} else {
+				toast.error(errorMessage);
+			}
+			
+			throw new Error(errorMessage);
 		}
 
 		if (!data.user) {
-			throw new Error("Registration failed. No user data returned.");
+			const msg = "Registration failed. No user data returned.";
+			toast.error(msg);
+			throw new Error(msg);
 		}
 
 		console.log("Supabase registration successful for user:", data.user.id);
