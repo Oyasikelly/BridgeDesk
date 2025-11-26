@@ -87,11 +87,34 @@ export async function loginUser(
 		console.log("Supabase login successful for user:", data.user.id);
 
 		// 2. Get user from your database
-		const userProfile = await getUserFromDatabase(data.user.id);
+		let userProfile = await getUserFromDatabase(data.user.id);
 
+		// 3. If user doesn't exist in database, sync from Supabase
 		if (!userProfile) {
-			throw new Error("User profile not found in database.");
+			console.log("User not found in database, syncing from Supabase...");
+			
+			// Extract user metadata from Supabase
+			const metadata = data.user.user_metadata || {};
+			const role = metadata.role || "STUDENT"; // Default to STUDENT if no role
+			const name = metadata.name || data.user.email?.split("@")[0] || "User";
+			const organizationId = metadata.organizationId || ""; // Default organization
+			
+			// Sync user to database
+			try {
+				await syncUserToDatabase(data.user, role, name, organizationId);
+				
+				// Fetch the newly created user profile
+				userProfile = await getUserFromDatabase(data.user.id);
+				
+				if (!userProfile) {
+					throw new Error("Failed to create user profile in database.");
+				}
+			} catch (syncError) {
+				console.error("Error syncing user during login:", syncError);
+				throw new Error("Failed to sync user profile. Please contact support.");
+			}
 		}
+		
 		return {
 			user: userProfile,
 			token: data.session?.access_token || "",
