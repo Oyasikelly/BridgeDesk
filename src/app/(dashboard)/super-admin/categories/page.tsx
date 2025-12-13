@@ -152,7 +152,7 @@ export default function CategoriesManagement() {
                                             <form 
                                                 onSubmit={(e) => {
                                                     e.preventDefault();
-                                                    // @ts-expect-error
+                                                    // @ts-expect-error - Temporary type mismatch workaround
                                                     const adminId = e.target.elements.adminId.value;
                                                     handleAssign(cat.id, adminId);
                                                 }}
