@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sidebar } from "./sidebar";
 import { useUser } from "@/context/userContext";
-import { useNotifications } from "@/hooks/useShared";
+import { useNotifications, type Notification } from "@/hooks/useShared";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -87,7 +87,7 @@ export function Header({ pageTitle }: { pageTitle: string }) {
                         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         {notifications.length > 0 ? (
-                            notifications.map((n: any) => (
+                            notifications.map((n: Notification) => (
                                 <DropdownMenuItem 
                                     key={n.id} 
                                     className={cn("cursor-pointer flex flex-col items-start p-3", !n.isRead && "bg-muted/50")}

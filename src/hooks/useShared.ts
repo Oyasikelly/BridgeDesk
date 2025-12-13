@@ -8,6 +8,16 @@ interface ChatMessage {
 	isStaff: boolean; // Computed on server or frontend
 }
 
+export interface Notification {
+    id: string;
+    title: string;
+    message: string;
+    isRead: boolean;
+    createdAt: string;
+    link?: string;
+    type?: string;
+}
+
 export function useChat(complaintId: string) {
 	const queryClient = useQueryClient();
 
@@ -70,7 +80,7 @@ export function useNotifications(userId?: string, role?: "ADMIN" | "STUDENT") {
             const res = await fetch(`/api/notifications?${param}`);
             if (!res.ok) throw new Error("Failed to load notifications");
             const json = await res.json();
-            return (json.notifications || []) as any[];
+            return (json.notifications || []) as Notification[];
         },
         enabled: !!userId && !!role,
         refetchInterval: 10000, // Poll every 10s
@@ -89,7 +99,7 @@ export function useNotifications(userId?: string, role?: "ADMIN" | "STUDENT") {
         },
     });
 
-    const unreadCount = data?.filter((n: any) => !n.isRead).length ?? 0;
+    const unreadCount = data?.filter((n: Notification) => !n.isRead).length ?? 0;
 
     return {
         notifications: data || [],
