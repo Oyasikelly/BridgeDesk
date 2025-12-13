@@ -7,6 +7,8 @@ export const metadata: Metadata = {
 	title: "Chat | Admin",
 };
 
+export const dynamic = "force-dynamic";
+
 export default function StudentDashboardPage() {
 	return (
 		<DashboardLayout pageTitle="Chat">
