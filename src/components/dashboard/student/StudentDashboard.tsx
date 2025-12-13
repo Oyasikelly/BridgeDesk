@@ -113,7 +113,7 @@ export default function StudentDashboard() {
 									name={userData?.student?.fullName ?? ""}
 									cards={cards}
 								/>
-								{userData?.id && <BarChartCard student={{ id: userData.id }} />}
+								{userData?.student?.id && <BarChartCard student={{ id: userData.student.id }} />}
 							</>
 						) : (
 							<div className="flex justify-center mt-10">
