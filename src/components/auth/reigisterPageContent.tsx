@@ -12,14 +12,13 @@ import {
 	CardTitle,
 	CardDescription,
 } from "@/components/ui/card";
-import { Eye, EyeOff, BookOpen, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, BookOpen, ArrowLeft, GraduationCap, BarChart3 } from "lucide-react";
 import Link from "next/link";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GraduationCap, BarChart3 } from "lucide-react";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ModeToggle } from "@/components/ui/toggleMode-switch";
-import { registerUser } from "@/lib/auth";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth"; 
+import { useUser } from "@/context/userContext";
 import toast from "react-hot-toast";
 import {
 	Select,
@@ -28,15 +27,12 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-	title: "register",
-};
 
 export default function RegisterPageContent() {
 	const router = useRouter();
-	const { user, logout } = useAuth();
+	const { register, logout } = useAuth();
+    const { userData: user } = useUser();
+    
 	const [formData, setFormData] = useState({
 		name: "",
 		email: "",
@@ -46,22 +42,16 @@ export default function RegisterPageContent() {
 		organizationId: "",
 		AdminRegistrationCode: "",
 	});
-	const [isLoading, setIsLoading] = useState(false);
+	
 	const [showPassword, setShowPassword] = useState(false);
 	const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 	type school = {
 		id: string;
 		name: string;
-		// Add other fields as needed based on your school model
 	};
 	const [schools, setschools] = useState<school[]>([]);
 	const [loadingOrgs, setLoadingOrgs] = useState(true);
-	const Router = useRouter();
 
-	// Remove the automatic redirect logic - users should be able to register new accounts
-	// even if they have an existing session
-
-	// Fetch schools on component mount
 	useEffect(() => {
 		const fetchschools = async () => {
 			try {
@@ -74,8 +64,6 @@ export default function RegisterPageContent() {
 
 				const data = await response.json();
 				setschools(data.organizations);
-
-				// Don't auto-select - user must choose
 			} catch (error) {
 				console.error("Error fetching organizations:", error);
 				toast.error("Failed to load organizations. Please try again.");
@@ -88,14 +76,7 @@ export default function RegisterPageContent() {
 	}, []);
 
 	const handleInputChange = (
-		field:
-			| "name"
-			| "email"
-			| "password"
-			| "confirmPassword"
-			| "role"
-			| "organizationId"
-			| "AdminRegistrationCode",
+		field: string,
 		value: string
 	) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
@@ -127,7 +108,7 @@ export default function RegisterPageContent() {
 			return false;
 		}
 		if (!formData.organizationId) {
-			toast.error("Please select an school");
+			toast.error("Please select a school");
 			return false;
 		} else if (!formData.AdminRegistrationCode && formData.role === "ADMIN") {
 			toast.error("Please enter your Admin Registration Code");
@@ -147,42 +128,24 @@ export default function RegisterPageContent() {
 			toast.error("Invalid Admin Registration Code");
 			return;
 		}
-		setIsLoading(true);
 
-		try {
-			const response = await registerUser({
-				name: formData.name,
-				email: formData.email,
-				password: formData.password,
-				role: formData.role as "STUDENT" | "ADMIN",
-				organizationId: formData.organizationId,
-			});
-
-			// Show success message about email confirmation
-			toast.success(
-				response.message ||
-					"Registration successful! Please check your email to confirm your account."
-			);
-
-			// Redirect to login page with confirmation message
-			router.push(
+		await register.mutateAsync({
+			name: formData.name,
+			email: formData.email,
+			password: formData.password,
+			role: formData.role as "STUDENT" | "ADMIN",
+			organizationId: formData.organizationId,
+		});
+		
+		router.push(
 				"/login?message=Please check your email to confirm your account before logging in."
-			);
-		} catch (err: unknown) {
-			const errorMessage =
-				err instanceof Error
-					? err.message
-					: "Registration failed. Please try again.";
-			toast.error(errorMessage);
-		} finally {
-			setIsLoading(false);
-		}
+		);
 	};
 
 	const handleLogout = async () => {
-		await logout();
-		toast.success("Logged out. You can now register a new account.");
+		logout.mutate(); // Using mutation
 	};
+
 	return (
 		<ThemeProvider>
 			<div className="min-h-screen bg-background dark:bg-black/95">
@@ -195,14 +158,13 @@ export default function RegisterPageContent() {
 							</div>
 							<h1 className="text-xl font-bold">BridgeDesk.</h1>
 						</div>
-						{/* Theme Toggle */}
 						<ModeToggle />
 					</div>
 				</header>
 
 				<div className="px-5 md:px-20 py-4">
 					<button
-						onClick={() => Router.back()}
+						onClick={() => router.back()}
 						className="flex items-center gap-2 mb-8 text-sm font-medium  hover:text-primary transition">
 						<ArrowLeft className="w-4 h-4" />
 						Back
@@ -212,7 +174,6 @@ export default function RegisterPageContent() {
 				{/* Main Content */}
 				<div className="flex-1 flex items-center justify-center px-4 py-12">
 					<div className="w-full max-w-md space-y-8">
-						{/* Welcome Section */}
 						<div className="text-center space-y-4">
 							<h2 className="text-3xl font-bold tracking-tight">
 								Create your account
@@ -222,7 +183,6 @@ export default function RegisterPageContent() {
 							</p>
 						</div>
 
-						{/* Notice for logged-in users */}
 						{user && (
 							<div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
 								<div className="flex items-center justify-between">
@@ -246,7 +206,6 @@ export default function RegisterPageContent() {
 							</div>
 						)}
 
-						{/* Register Form */}
 						<Card>
 							<CardHeader>
 								<CardTitle className="text-center">Sign Up</CardTitle>
@@ -255,7 +214,6 @@ export default function RegisterPageContent() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent className="space-y-6">
-								{/* Role Selection */}
 								<Tabs
 									value={formData.role}
 									onValueChange={(value) => handleInputChange("role", value)}
@@ -276,7 +234,6 @@ export default function RegisterPageContent() {
 									</TabsList>
 								</Tabs>
 
-								{/* Register Form */}
 								<form
 									onSubmit={handleSubmit}
 									className="space-y-4">
@@ -290,7 +247,7 @@ export default function RegisterPageContent() {
 											onChange={(e) =>
 												handleInputChange("name", e.target.value)
 											}
-											disabled={isLoading}
+											disabled={register.isPending}
 										/>
 									</div>
 
@@ -304,7 +261,7 @@ export default function RegisterPageContent() {
 											onChange={(e) =>
 												handleInputChange("email", e.target.value)
 											}
-											disabled={isLoading}
+											disabled={register.isPending}
 										/>
 									</div>
 
@@ -315,7 +272,7 @@ export default function RegisterPageContent() {
 											onValueChange={(value) =>
 												handleInputChange("organizationId", value)
 											}
-											disabled={isLoading || loadingOrgs}>
+											disabled={register.isPending || loadingOrgs}>
 											<SelectTrigger>
 												<SelectValue
 													placeholder={
@@ -349,13 +306,13 @@ export default function RegisterPageContent() {
 													handleInputChange("password", e.target.value)
 												}
 												className="pr-10"
-												disabled={isLoading}
+												disabled={register.isPending}
 											/>
 											<button
 												type="button"
 												onClick={() => setShowPassword(!showPassword)}
 												className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
-												disabled={isLoading}>
+												disabled={register.isPending}>
 												{showPassword ? (
 													<EyeOff className="h-4 w-4" />
 												) : (
@@ -377,7 +334,7 @@ export default function RegisterPageContent() {
 													handleInputChange("confirmPassword", e.target.value)
 												}
 												className="pr-10"
-												disabled={isLoading}
+												disabled={register.isPending}
 											/>
 											<button
 												type="button"
@@ -385,7 +342,7 @@ export default function RegisterPageContent() {
 													setShowConfirmPassword(!showConfirmPassword)
 												}
 												className="absolute right-3 top-3 h-4 w-4 text-muted-foreground hover:text-foreground"
-												disabled={isLoading}>
+												disabled={register.isPending}>
 												{showConfirmPassword ? (
 													<EyeOff className="h-4 w-4" />
 												) : (
@@ -411,7 +368,7 @@ export default function RegisterPageContent() {
 														e.target.value
 													)
 												}
-												disabled={isLoading}
+												disabled={register.isPending}
 											/>
 										</div>
 									)}
@@ -419,8 +376,8 @@ export default function RegisterPageContent() {
 									<Button
 										type="submit"
 										className="w-full"
-										disabled={isLoading}>
-										{isLoading ? (
+										disabled={register.isPending}>
+										{register.isPending ? (
 											<>
 												<div className="w-4 h-4 mr-2 animate-spin border-2 border-current border-t-transparent rounded-full" />
 												Creating account...
@@ -431,7 +388,6 @@ export default function RegisterPageContent() {
 									</Button>
 								</form>
 
-								{/* Sign In Link */}
 								<div className="text-center text-sm">
 									Already have an account?{" "}
 									<Link

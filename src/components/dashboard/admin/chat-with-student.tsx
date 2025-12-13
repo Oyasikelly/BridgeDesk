@@ -16,6 +16,7 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useUser } from "@/context/userContext";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Skeleton } from "@/components/ui/skeleton";
 import MessageStat from "../MessageStat";
 import NextImage from "next/image";
@@ -43,9 +44,10 @@ interface Complaint {
 	id: string;
 	title: string;
 	status: string;
-	category: string;
+	category: { name: string };
 	dateSubmitted: string;
 }
+
 
 type Screen = "students" | "complaints" | "chat";
 
@@ -60,101 +62,54 @@ export default function AdminChatWithStudents() {
 	const [messages, setMessages] = useState<Message[]>([]);
 	const [search, setSearch] = useState("");
 	const [message, setMessage] = useState("");
-	const [loading, setLoading] = useState(true);
-	const [complaintsLoading, setComplaintsLoading] = useState(false);
-	const [messagesLoading, setMessagesLoading] = useState(false);
 	const [uploading, setUploading] = useState(false);
 	const [file, setFile] = useState<File | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
 	const [screen, setScreen] = useState<Screen>("students");
 
 	const adminId = userData?.admin?.id;
+    const { useChatStudents, useChatComplaints, useChatMessages } = useAdmin();
 
-	// Auto scroll on messages
-	useEffect(() => {
-		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-	}, [messages]);
-
-	// Fetch students
-	const fetchStudents = async () => {
-		if (!adminId) return;
-		setLoading(true);
-		try {
-			const res = await fetch(`/api/admin/chat/students?adminId=${adminId}`);
-			const data = await res.json();
-			if (!res.ok) throw new Error(data.error || "Failed to fetch students");
-			setStudents(data.students || []);
-		} catch (err) {
-			console.error(err);
-			toast.error("Failed to load students");
-		} finally {
-			setLoading(false);
-		}
-	};
+    // Hooks
+    const { data: studentsData, isLoading: studentsLoading } = useChatStudents(adminId);
+    const { data: complaintsData, isLoading: complaintsLoading } = useChatComplaints(adminId, selectedStudent?.id);
+    const { data: messagesData, isLoading: messagesLoading } = useChatMessages(adminId, selectedComplaint?.id);
 
 	useEffect(() => {
-		fetchStudents();
-	}, [adminId]);
+        if (studentsData?.students) {
+            setStudents(studentsData.students);
+        }
+	}, [studentsData]);
 
-	// Fetch complaints
 	useEffect(() => {
-		if (!selectedStudent) return;
-		const fetchComplaints = async () => {
-			try {
-				setComplaintsLoading(true);
-				const res = await fetch(
-					`/api/admin/chat/complaints?adminId=${adminId}&studentId=${selectedStudent.id}`
-				);
-				const data = await res.json();
-				if (!res.ok) throw new Error(data.error || "Failed to load complaints");
-				setComplaints(data.complaints || []);
-			} catch (err) {
-				console.error(err);
-				toast.error("Failed to load complaints");
-			} finally {
-				setComplaintsLoading(false);
-			}
-		};
-		fetchComplaints();
-	}, [selectedStudent, adminId]);
+        if (complaintsData?.complaints) {
+            setComplaints(complaintsData.complaints);
+        }
+	}, [complaintsData]);
 
-	// Fetch messages
 	useEffect(() => {
-		if (!selectedComplaint) return;
-
-		const fetchMessages = async () => {
-			try {
-				setMessagesLoading(true);
-				const res = await fetch(
-					`/api/admin/chat/messages?adminId=${adminId}&complaintId=${selectedComplaint.id}`
-				);
-				const data = await res.json();
-				if (!res.ok) throw new Error(data.error || "Failed to load messages");
-
-				const formattedMessages = data.map((msg: Message) => ({
-					id: msg.id,
-					message: msg.message,
-					fileUrl: msg.fileUrl,
-					fileType: msg.fileType,
-					timestamp: new Date(msg.timestamp).toLocaleTimeString([], {
-						hour: "2-digit",
-						minute: "2-digit",
-					}),
-					status: msg.status,
-					senderType: msg.senderType,
-				}));
-
-				setMessages(formattedMessages);
-			} catch (err) {
-				console.error(err);
-				toast.error("Failed to load messages");
-			} finally {
-				setMessagesLoading(false);
-			}
-		};
-
-		fetchMessages();
-	}, [selectedComplaint, adminId]);
+        if (messagesData) {
+            // Check if messagesData is array or object
+            const rawMessages = Array.isArray(messagesData) ? messagesData : messagesData.messages || [];
+            
+            const formattedMessages = rawMessages.map((msg: any) => ({
+                id: msg.id,
+                message: msg.message,
+                fileUrl: msg.fileUrl,
+                fileType: msg.fileType,
+                timestamp: new Date(msg.timestamp).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                }),
+                status: msg.status,
+                senderType: msg.senderType, // Ensure senderType is available in API response from Prisma
+            }));
+            setMessages(formattedMessages);
+        }
+	}, [messagesData]);
+    
+    // Derived loading state
+    const loading = studentsLoading;
 
 	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		const selected = e.target.files?.[0];
@@ -232,8 +187,7 @@ export default function AdminChatWithStudents() {
 			{/* Desktop Sidebar */}
 			<div
 				className={cn(
-					"w-full md:w-1/3 border-r bg-primary-foreground flex flex-col transition-all duration-300",
-					selectedStudent ? "hidden md:flex" : "flex"
+					"hidden md:flex w-full md:w-1/3 border-r bg-primary-foreground flex-col transition-all duration-300"
 				)}>
 				<CardHeader className="border-b p-4">
 					<CardTitle className="text-lg font-semibold flex items-center gap-2">
@@ -285,7 +239,7 @@ export default function AdminChatWithStudents() {
 			</div>
 
 			{/* Mobile/Tablet Flow */}
-			<div className="flex-1 flex flex-col md:hidden">
+			<div className={cn("flex-1 flex flex-col md:hidden")}>
 				{screen === "students" && (
 					<div className="flex-1 flex flex-col">
 						<div className="p-4 flex items-center justify-between border-b">
@@ -509,11 +463,192 @@ export default function AdminChatWithStudents() {
 
 			{/* Desktop Chat Room */}
 			<div
-				className={cn(
-					"flex-1 flex flex-col bg-background transition-all duration-300",
-					!selectedStudent && "hidden md:flex"
-				)}>
-				{/* Keep your existing desktop layout here */}
+				className="hidden md:flex flex-1 flex-col bg-background transition-all duration-300">
+				{!selectedStudent ? (
+					<div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+						<MessageSquare className="h-16 w-16 mb-4 opacity-20" />
+						<p>Select a student to view complaints and start chatting</p>
+					</div>
+				) : !selectedComplaint ? (
+					<div className="flex-1 flex flex-col">
+						<div className="p-4 border-b flex items-center justify-between">
+							<h2 className="font-semibold text-lg flex items-center gap-2">
+								<User className="h-5 w-5 text-primary" />
+								{selectedStudent.fullName}
+								<span className="text-sm font-normal text-gray-500">
+									({selectedStudent.department})
+								</span>
+							</h2>
+						</div>
+						<div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto">
+							{complaintsLoading ? (
+								Array.from({ length: 3 }).map((_, i) => (
+									<Skeleton key={i} className="h-32 w-full rounded-xl" />
+								))
+							) : complaints && complaints.length > 0 ? (
+								complaints.map((c) => (
+									<Card
+										key={c.id}
+										onClick={() => setSelectedComplaint(c)}
+										className="cursor-pointer hover:shadow-md transition-all p-4 border rounded-xl group">
+										<div className="flex justify-between items-start mb-2">
+											<span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
+												{c.dateSubmitted ? new Date(c.dateSubmitted).toLocaleDateString() : "N/A"}
+											</span>
+											<MessageStat status={c.status as any} /> 
+										</div>
+										<h3 className="font-semibold text-gray-800 line-clamp-1 group-hover:text-primary transition-colors">
+											{c.title}
+										</h3>
+										<p className="text-sm text-gray-500 mt-1">
+											{c.category.name}
+										</p>
+									</Card>
+								))
+							) : (
+								<div className="col-span-full flex flex-col items-center justify-center text-gray-400 mt-20">
+									<p>No complaints found for this student.</p>
+								</div>
+							)}
+						</div>
+					</div>
+				) : (
+					<div className="flex-1 flex flex-col h-full">
+						{/* Chat Header */}
+						<div className="p-4 border-b flex items-center justify-between bg-white dark:bg-black z-10 shadow-sm">
+							<div className="flex items-center gap-3">
+								<Button
+									variant="ghost"
+									size="icon"
+									onClick={() => setSelectedComplaint(null)}
+									className="hover:bg-gray-100 rounded-full">
+									<ArrowLeft className="h-5 w-5 text-gray-600" />
+								</Button>
+								<div>
+									<h2 className="font-bold text-gray-800 dark:text-gray-100">
+										{selectedComplaint.title}
+									</h2>
+									<p className="text-xs text-green-600 flex items-center gap-1">
+										<span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+										Active Support
+									</p>
+								</div>
+							</div>
+						</div>
+
+						{/* Messages Area */}
+						<div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50 dark:bg-background/20">
+							{messagesLoading ? (
+								Array.from({ length: 4 }).map((_, i) => (
+									<Skeleton key={i} className="h-16 w-3/4 rounded-xl mb-4" />
+								))
+							) : messages.length > 0 ? (
+								messages.map((msg) => (
+									<div
+										key={msg.id}
+										className={cn(
+											"flex w-full",
+											msg.senderType === "ADMIN"
+												? "justify-end"
+												: "justify-start"
+										)}>
+										<div
+											className={cn(
+												"max-w-[85%] md:max-w-[70%] rounded-2xl px-5 py-3 shadow-sm text-sm relative",
+												msg.senderType === "ADMIN"
+													? "bg-primary text-white rounded-br-none"
+													: "bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-bl-none text-gray-800 dark:text-gray-100"
+											)}>
+											{msg.fileUrl && (
+												<div className="mb-3">
+													<a
+														href={getFileUrl(msg.fileUrl)}
+														target="_blank"
+														rel="noopener noreferrer"
+														className="block group">
+														{msg.fileUrl.match(/\.(jpeg|jpg|png|gif|webp)$/i) ? (
+															<NextImage
+																src={getFileUrl(msg.fileUrl)}
+																alt={msg.fileName || "attachment"}
+																width={250}
+																height={200}
+																className="rounded-lg object-cover border"
+															/>
+														) : (
+															<div className="flex items-center gap-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg">
+																<Paperclip className="h-5 w-5" />
+																<span className="truncate max-w-[150px]">
+																	{msg.fileName || "Attachment"}
+																</span>
+															</div>
+														)}
+													</a>
+												</div>
+											)}
+											<p className="whitespace-pre-wrap">{msg.message}</p>
+											<p className={cn(
+												"text-[10px] mt-1 text-right",
+												msg.senderType === "ADMIN" ? "text-white/70" : "text-gray-400"
+											)}>
+												{msg.timestamp}
+											</p>
+										</div>
+									</div>
+								))
+							) : (
+								<div className="h-full flex flex-col items-center justify-center text-gray-400 space-y-2">
+									<MessageSquare className="h-12 w-12 opacity-20" />
+									<p>No messages yet. Start the conversation!</p>
+								</div>
+							)}
+							<div ref={messagesEndRef} />
+						</div>
+
+						{/* Input Area */}
+						<div className="p-4 bg-white dark:bg-black border-t">
+							{file && (
+								<div className="flex items-center justify-between bg-blue-50 dark:bg-blue-900/20 p-2 px-4 rounded-lg mb-2 border border-blue-100 dark:border-blue-800">
+									<div className="flex items-center gap-2 text-sm text-blue-700 dark:text-blue-300">
+										<Paperclip className="h-4 w-4" />
+										<span className="truncate max-w-xs">{file.name}</span>
+									</div>
+									<Button
+										size="sm"
+										variant="ghost"
+										onClick={() => setFile(null)}
+										className="h-6 w-6 p-0 hover:bg-blue-100 rounded-full">
+										<X className="h-3 w-3" />
+									</Button>
+								</div>
+							)}
+							<div className="flex items-center gap-2">
+								<label className="cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors relative">
+									<input
+										type="file"
+										className="hidden"
+										onChange={handleFileChange}
+										disabled={uploading}
+									/>
+									<Paperclip className="h-5 w-5 text-gray-500" />
+								</label>
+								<Input
+									placeholder="Type your message..."
+									value={message}
+									onChange={(e) => setMessage(e.target.value)}
+									onKeyDown={(e) => e.key === "Enter" && handleSend()}
+									className="flex-1 bg-gray-50 dark:bg-gray-900 border-none focus-visible:ring-1 focus-visible:ring-primary/50"
+									disabled={uploading}
+								/>
+								<Button
+									onClick={handleSend}
+									disabled={(!message.trim() && !file) || uploading}
+									className="bg-primary hover:bg-primary/90 text-white rounded-full px-4 transition-all">
+									{uploading ? "..." : <Send className="h-4 w-4" />}
+								</Button>
+							</div>
+						</div>
+					</div>
+				)}
 			</div>
 		</div>
 	);

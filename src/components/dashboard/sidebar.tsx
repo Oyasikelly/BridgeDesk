@@ -16,6 +16,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "@/context/userContext";
 import { Spinner } from "../ui/spinner";
+import { useComplaints } from "@/hooks/useComplaintsApi";
+import { useAdmin } from "@/hooks/useAdmin";
 
 export const studentLinks = [
 	{ label: "Dashboard", icon: Home, url: "/student" },
@@ -51,42 +53,26 @@ export const adminLinks = [
 	{ label: "Settings", icon: Settings, url: "/admin/settings" },
 ];
 
+// ... inside Sidebar
 export function Sidebar() {
 	const { userData } = useUser();
-	const [loading, setLoading] = useState(true);
+    const { useAdminComplaints } = useAdmin();
+    
+    // Fetch stats for sidebar badges
+    // Student: Use useComplaints
+    const { data: studentData, isLoading: studentLoading } = useComplaints({
+        studentId: userData?.student?.id,
+    });
+    const pendingComplaints = studentData?.pendingComplaints || 0;
+    
+    // Admin: Use useAdminComplaints
+    const { data: adminStats, isLoading: adminLoading } = useAdminComplaints(userData?.admin?.id);
+    const totalComplaints = adminStats?.complaints || []; 
 
 	const activeLinks = userData?.role === "ADMIN" ? adminLinks : studentLinks;
 	const pathname = usePathname();
-	const [pendingComplaints, setPendingComplaints] = useState(0);
-	const [totalComplaints, setTotalComplaints] = useState([]);
-	useEffect(() => {
-		async function fetchPendingComplaint() {
-			try {
-				setLoading(true);
-				if (userData?.role === "STUDENT") {
-					const res = await fetch(
-						`/api/complaints?studentId=${userData?.student?.id}`
-					);
-					const data = await res.json();
-					setPendingComplaints(data.pendingComplaints || 0);
-					console.log("All Complaints Data:", userData?.id, data);
-				} else {
-					const res = await fetch(
-						`/api/admin/complaints?adminId=${userData?.admin?.id}`
-					);
-					const data = await res.json();
-					console.log("Fetched admin complaints:", data.complaints);
-					setTotalComplaints(data.complaints || 0);
-					console.log("All Complaints Data:", userData?.id, data);
-				}
-			} catch (err) {
-				console.error("Error fetching all complaints:", err);
-			} finally {
-				setLoading(false);
-			}
-		}
-		if (userData?.id) fetchPendingComplaint();
-	}, [userData]);
+    
+    const loading = studentLoading || adminLoading;
 
 	if (!userData) {
 		return (

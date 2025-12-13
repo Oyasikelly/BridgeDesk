@@ -1,4 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
+
+async function getAuthHeaders() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.access_token) throw new Error("No active session");
+    return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`
+    };
+}
 
 /**
  * Custom hook to fetch complaints for a student or category
@@ -14,7 +24,8 @@ export function useComplaints(params: {
 			if (params.studentId) searchParams.set("studentId", params.studentId);
 			if (params.categoryId) searchParams.set("categoryId", params.categoryId);
 
-			const res = await fetch(`/api/complaints?${searchParams}`);
+            const headers = await getAuthHeaders();
+			const res = await fetch(`/api/complaints?${searchParams}`, { headers });
 			if (!res.ok) throw new Error("Failed to fetch complaints");
 			return await res.json();
 		},
@@ -31,7 +42,8 @@ export function useComplaintSummary(studentId?: string) {
 		queryKey: ["complaintSummary", studentId],
 		queryFn: async () => {
 			if (!studentId) throw new Error("No student ID");
-			const res = await fetch(`/api/complaints/summary?studentId=${studentId}`);
+            const headers = await getAuthHeaders();
+			const res = await fetch(`/api/complaints/summary?studentId=${studentId}`, { headers });
 			if (!res.ok) throw new Error("Failed to fetch summary");
 			return await res.json();
 		},
@@ -53,9 +65,10 @@ export function useCreateComplaint() {
 			categoryId: string;
 			studentId: string;
 		}) => {
+            const headers = await getAuthHeaders();
 			const res = await fetch("/api/complaints", {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers,
 				body: JSON.stringify(data),
 			});
 			if (!res.ok) throw new Error("Failed to create complaint");
@@ -77,7 +90,8 @@ export function useCategories() {
 	return useQuery({
 		queryKey: ["categories"],
 		queryFn: async () => {
-			const res = await fetch("/api/categories");
+            const headers = await getAuthHeaders();
+			const res = await fetch("/api/categories", { headers });
 			if (!res.ok) throw new Error("Failed to fetch categories");
 			return await res.json();
 		},

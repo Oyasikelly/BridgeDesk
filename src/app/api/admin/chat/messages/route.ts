@@ -35,7 +35,8 @@ export async function GET(req: Request) {
 		}
 
 		// ✅ Fetch messages under this complaint
-		const messages = await prisma.chatMessage.findMany({
+		// ✅ Fetch messages under this complaint
+		const rawMessages = await prisma.chatMessage.findMany({
 			where: { complaintId },
 			include: {
 				senderAdmin: true,
@@ -43,6 +44,11 @@ export async function GET(req: Request) {
 			},
 			orderBy: { timestamp: "asc" },
 		});
+
+        const messages = rawMessages.map((msg) => ({
+            ...msg,
+            senderType: msg.senderAdminId ? "ADMIN" : "STUDENT",
+        }));
 
 		return NextResponse.json(messages);
 	} catch (error) {
@@ -138,7 +144,10 @@ export async function POST(req: NextRequest) {
 				},
 			});
 
-			return NextResponse.json({ message: newMessage }, { status: 201 });
+			return NextResponse.json({
+                ...newMessage,
+                senderType: "ADMIN"
+            }, { status: 201 });
 		}
 
 		// ❌ Unsupported request

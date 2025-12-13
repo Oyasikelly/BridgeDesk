@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/context/userContext";
 import { cn } from "@/lib/utils";
 import type { Complaint } from "@/types/ComplaintList";
+import { useComplaints } from "@/hooks/useComplaintsApi";
 
 interface ComplaintListProps {
 	selectedCategoryId: string | null;
@@ -17,34 +17,16 @@ export default function ComplaintList({
 	onSelectComplaint,
 	selectedComplaintId,
 }: ComplaintListProps) {
+    // ... inside component
 	const { userData } = useUser();
-	const [complaints, setComplaints] = useState<Complaint[]>([]);
-	const [loading, setLoading] = useState(false);
+    
+    const { data: fetchResult, isLoading: loading } = useComplaints({
+        studentId: userData?.student?.id,
+        categoryId: selectedCategoryId || undefined
+    });
+    const complaints = fetchResult?.complaints || [];
 
 	console.log("Selected Category ID in ComplaintList:", selectedCategoryId);
-	useEffect(() => {
-		if (!selectedCategoryId || !userData?.student?.id) return;
-
-		async function fetchComplaints() {
-			setLoading(true);
-			try {
-				const res = await fetch(
-					`/api/complaints?studentId=${userData?.student?.id}&categoryId=${selectedCategoryId}`
-				);
-				const data = await res.json();
-				console.log("Fetched Complaints Data:", data);
-				if (!res.ok)
-					throw new Error(data.error || "Failed to fetch complaints");
-				setComplaints(data.complaints || []);
-			} catch (error) {
-				console.error("Error fetching complaints:", error);
-			} finally {
-				setLoading(false);
-			}
-		}
-
-		fetchComplaints();
-	}, [selectedCategoryId, userData]);
 
 	return (
 		<div className="w-80 border-r bg-gray-50 dark:bg-primary-foreground h-[85vh] overflow-y-auto">
@@ -69,7 +51,7 @@ export default function ComplaintList({
 						No complaints in this category
 					</p>
 				) : (
-					complaints.map((complaint) => (
+					complaints.map((complaint: Complaint) => (
 						<button
 							key={complaint.id}
 							onClick={() => onSelectComplaint(complaint)}

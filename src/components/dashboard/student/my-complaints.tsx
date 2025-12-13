@@ -25,6 +25,7 @@ import {
 	SelectItem,
 } from "@/components/ui/select";
 import toast from "react-hot-toast";
+import { useComplaints, useCategories, useCreateComplaint } from "@/hooks/useComplaintsApi";
 import { useUser } from "@/context/userContext";
 import { ComplaintStatus } from "@prisma/client";
 
@@ -42,18 +43,24 @@ type Complaint = {
 };
 
 export default function MyComplaintsPage() {
-	const [complaints, setComplaints] = useState<Complaint[]>([]);
+	// Hook integration
+	const { userData } = useUser();
+    const { data: fetchResult, isLoading: loading, error } = useComplaints({ studentId: userData?.student?.id });
+    const complaints = fetchResult?.complaints || [];
+
 	const [selectedComplaint, setSelectedComplaint] = useState<Complaint | null>(
 		null
 	);
 	const [isViewModalOpen, setIsViewModalOpen] = useState(false);
 
 	const [isDialogOpen, setIsDialogOpen] = useState(false);
-	const [loading, setLoading] = useState(false);
-	const { userData } = useUser();
-	const [categories, setCategories] = useState<{ id: string; name: string }[]>(
-		[]
-	);
+	
+	const { data: categoriesData, isLoading: catLoading, error: catError } = useCategories();
+    const categories = categoriesData?.categories || [];
+    
+    // Mutation for creating complaint
+    const createComplaintMutation = useCreateComplaint();
+
 	const [newComplaint, setNewComplaint] = useState({
 		title: "",
 		categoryId: "",
@@ -61,40 +68,12 @@ export default function MyComplaintsPage() {
 	});
 	const router = useRouter();
 
-	// ✅ Fetch complaints from DB
-	const fetchComplaints = async () => {
-		setLoading(true);
-		try {
-			const res = await fetch(
-				`/api/complaints?studentId=${userData?.student?.id}`
-			);
-			if (!res.ok) throw new Error("Failed to fetch complaints");
-			const data = await res.json();
-			setComplaints(data.complaints);
-		} catch (err) {
-			console.error("Error:", err);
-			toast("Failed to load complaints");
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const fetchCategories = async () => {
-		try {
-			const res = await fetch("/api/categories");
-			if (!res.ok) throw new Error("Failed to fetch categories");
-			const data = await res.json();
-			setCategories(data.categories);
-		} catch (err) {
-			console.error(err);
-			toast("Failed to load categories");
-		}
-	};
-
+    // Error handling side-effect
 	useEffect(() => {
-		fetchComplaints();
-		fetchCategories();
-	}, [userData?.student?.id]);
+        if (error) {
+            toast.error("Failed to load complaints");
+        }
+    }, [error]);
 
 	const getStatusBadge = (status: Complaint["status"]) => {
 		switch (status) {
@@ -124,33 +103,24 @@ export default function MyComplaintsPage() {
 			!newComplaint.description
 		)
 			return alert("Please fill all fields.");
+            
+        if (!userData?.student?.id) {
+            toast.error("User identification failed");
+            return;
+        }
 
 		try {
-			const res = await fetch("/api/complaints", {
-				method: "POST",
-				headers: { "Content-Type": "application/json" },
-				body: JSON.stringify({
-					title: newComplaint.title,
-					description: newComplaint.description,
-					categoryId: newComplaint.categoryId,
-					studentId: userData?.student?.id,
-				}),
-			});
+			const data = await createComplaintMutation.mutateAsync({
+                title: newComplaint.title,
+                description: newComplaint.description,
+                categoryId: newComplaint.categoryId,
+                studentId: userData.student.id,
+            });
 
-			console.log("Payload:", {
-				title: newComplaint.title,
-				description: newComplaint.description,
-				categoryId: newComplaint.categoryId,
-				studentId: userData?.student?.id,
-			});
-
-			const data = await res.json();
-			if (!res.ok) throw new Error(data.error || "Something went wrong");
-
-			setComplaints((prev) => [data.complaint, ...prev]);
 			setNewComplaint({ title: "", categoryId: "", description: "" });
 			setIsDialogOpen(false);
 			toast("✅ Complaint submitted successfully!");
+            // No need to manually update state as mutation invalidates query
 		} catch (err: unknown) {
 			const errorMessage =
 				err instanceof Error ? err.message : "Something went wrong";
@@ -198,7 +168,7 @@ export default function MyComplaintsPage() {
 										<SelectValue placeholder="Select category" />
 									</SelectTrigger>
 									<SelectContent>
-										{categories.map((cat) => (
+										{categories.map((cat: {id: string; name: string}) => (
 											<SelectItem
 												key={cat.id}
 												value={cat.id}>
@@ -213,7 +183,7 @@ export default function MyComplaintsPage() {
 								<Textarea
 									placeholder="Describe your complaint in detail..."
 									value={newComplaint.description}
-									onChange={(e) =>
+									onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
 										setNewComplaint({
 											...newComplaint,
 											description: e.target.value,
@@ -256,7 +226,7 @@ export default function MyComplaintsPage() {
 						</thead>
 						<tbody>
 							{complaints.map(
-								(complaint) => (
+								(complaint: Complaint) => (
 									console.log(complaint),
 									(
 										<tr
