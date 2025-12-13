@@ -27,7 +27,6 @@ export function Header({ pageTitle }: { pageTitle: string }) {
 
     // Determine User ID based on Role
     const userId = userData?.role === "ADMIN" ? userData?.admin?.id : userData?.student?.id;
-    // @ts-ignore - Role type mismatch fix
     const role = userData?.role as "ADMIN" | "STUDENT";
 
     const { notifications, unreadCount, markAsRead } = useNotifications(userId, role);

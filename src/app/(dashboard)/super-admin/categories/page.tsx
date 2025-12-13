@@ -152,7 +152,7 @@ export default function CategoriesManagement() {
                                             <form 
                                                 onSubmit={(e) => {
                                                     e.preventDefault();
-                                                    // @ts-ignore
+                                                    // @ts-expect-error
                                                     const adminId = e.target.elements.adminId.value;
                                                     handleAssign(cat.id, adminId);
                                                 }}

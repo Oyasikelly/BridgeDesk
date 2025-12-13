@@ -43,7 +43,7 @@ export async function GET(req: NextRequest) {
 		const categories = await prisma.category.findMany({
             where: {
                 organizationId: user.organizationId
-            } as any, // Cast to any to avoid stale type errors
+            },
 			orderBy: { name: "asc" },
 			include: includeAdmins
 				? {
@@ -95,8 +95,8 @@ export async function POST(req: NextRequest) {
 			data: {
 				name,
 				description,
-                organizationId: user.organizationId
-			} as any,
+				organizationId: user.organizationId
+			}
 		});
 
 		return NextResponse.json({ category }, { status: 201 });
@@ -132,7 +132,7 @@ export async function PATCH(req: NextRequest) {
         // Ensure Category belongs to Org
         const categoryCheck = await prisma.category.findUnique({
             where: { id: categoryId }
-        }) as any;
+        });
         
         if (!categoryCheck || categoryCheck.organizationId !== user.organizationId) {
             return NextResponse.json({ error: "Category not found or access denied" }, { status: 404 });

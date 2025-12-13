@@ -49,6 +49,16 @@ interface Complaint {
 	dateSubmitted: string;
 }
 
+interface APIMessage {
+    id: string;
+    message: string;
+    fileUrl: string | null;
+    fileType?: string | null;
+    fileName?: string | null;
+    timestamp: string | Date;
+    status: MessageStatus;
+    senderType: "ADMIN" | "STUDENT";
+}
 
 type Screen = "students" | "complaints" | "chat";
 
@@ -119,7 +129,7 @@ export default function AdminChatWithStudents() {
             // Check if messagesData is array or object
             const rawMessages = Array.isArray(messagesData) ? messagesData : messagesData.messages || [];
             
-            const formattedMessages = rawMessages.map((msg: any) => ({
+            const formattedMessages = rawMessages.map((msg: APIMessage) => ({
                 id: msg.id,
                 message: msg.message,
                 fileUrl: msg.fileUrl,
@@ -146,6 +156,7 @@ export default function AdminChatWithStudents() {
 	const handleSend = async () => {
 		if (!selectedStudent || (!message.trim() && !file)) return;
 
+		setUploading(true);
 		const newMsg: Message = {
 			id: Date.now().toString(),
 			senderType: "ADMIN",
@@ -188,8 +199,9 @@ export default function AdminChatWithStudents() {
 			setFile(null);
 		} catch (err) {
 			console.error(err);
-			toast.error("Failed to send message");
-		}
+		} finally {
+            setUploading(false);
+        }
 	};
 
 	const filteredStudents = students.filter((s) =>
@@ -522,7 +534,7 @@ export default function AdminChatWithStudents() {
 											<span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-1 rounded">
 												{c.dateSubmitted ? new Date(c.dateSubmitted).toLocaleDateString() : "N/A"}
 											</span>
-											<MessageStat status={c.status as any} /> 
+											<MessageStat status={c.status as MessageStatus} /> 
 										</div>
 										<h3 className="font-semibold text-gray-800 line-clamp-1 group-hover:text-primary transition-colors">
 											{c.title}

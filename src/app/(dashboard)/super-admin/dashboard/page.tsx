@@ -24,7 +24,7 @@ export default function SuperAdminDashboard() {
     return (
         <div className="p-6 space-y-6">
             <h1 className="text-3xl font-bold tracking-tight">Organization Overview</h1>
-            <p className="text-muted-foreground">Manage your organization's performance and structure.</p>
+            <p className="text-muted-foreground">Manage your organization&apos;s performance and structure.</p>
 
             {/* Stat Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -22,7 +22,7 @@ export function useAuth() {
 
 	const registerMutation = useMutation({
 		mutationFn: (credentials: RegisterCredentials) => registerUser(credentials),
-		onSuccess: (data) => {
+		onSuccess: () => {
 			toast.success("Registration successful! Please check email.");
 			// Usually redirect to verify email or login
 		},
@@ -41,7 +41,7 @@ export function useAuth() {
 	});
 
 	const completeProfileMutation = useMutation({
-		mutationFn: async (data: any) => {
+		mutationFn: async (data: Record<string, unknown>) => {
 			const res = await fetch("/api/profile/complete", {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
