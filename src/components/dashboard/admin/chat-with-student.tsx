@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import {
 	Search,
 	Send,
@@ -53,6 +54,7 @@ type Screen = "students" | "complaints" | "chat";
 
 export default function AdminChatWithStudents() {
 	const { userData } = useUser();
+    const searchParams = useSearchParams();
 	const [students, setStudents] = useState<Student[]>([]);
 	const [complaints, setComplaints] = useState<Complaint[] | null>([]);
 	const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -74,6 +76,31 @@ export default function AdminChatWithStudents() {
     const { data: studentsData, isLoading: studentsLoading } = useChatStudents(adminId);
     const { data: complaintsData, isLoading: complaintsLoading } = useChatComplaints(adminId, selectedStudent?.id);
     const { data: messagesData, isLoading: messagesLoading } = useChatMessages(adminId, selectedComplaint?.id);
+
+    // Deep Linking: Auto-select Student
+    useEffect(() => {
+        const paramStudentId = searchParams.get("studentId");
+        if (paramStudentId && students.length > 0 && !selectedStudent) {
+            const found = students.find(s => s.id === paramStudentId);
+            if (found) {
+                setSelectedStudent(found);
+                setScreen("complaints");
+            }
+        }
+    }, [searchParams, students, selectedStudent]);
+
+    // Deep Linking: Auto-select Complaint
+    useEffect(() => {
+        const paramComplaintId = searchParams.get("complaintId");
+        // Using complaints directly from state which is set by useEffect below
+        if (paramComplaintId && complaints && complaints.length > 0 && !selectedComplaint) {
+            const found = complaints.find(c => c.id === paramComplaintId);
+            if (found) {
+                setSelectedComplaint(found);
+                setScreen("chat");
+            }
+        }
+    }, [searchParams, complaints, selectedComplaint]);
 
 	useEffect(() => {
         if (studentsData?.students) {

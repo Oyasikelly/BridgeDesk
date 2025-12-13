@@ -57,3 +57,44 @@ export function useComplaint(id: string) {
         enabled: !!id,
     });
 }
+
+export function useNotifications(userId?: string, role?: "ADMIN" | "STUDENT") {
+    const queryClient = useQueryClient();
+    const queryKey = ["notifications", userId, role];
+
+    const { data, isLoading } = useQuery({
+        queryKey,
+        queryFn: async () => {
+            if (!userId || !role) return [];
+            const param = role === "ADMIN" ? `adminId=${userId}` : `studentId=${userId}`;
+            const res = await fetch(`/api/notifications?${param}`);
+            if (!res.ok) throw new Error("Failed to load notifications");
+            const json = await res.json();
+            return (json.notifications || []) as any[];
+        },
+        enabled: !!userId && !!role,
+        refetchInterval: 10000, // Poll every 10s
+    });
+
+    const markAsReadMutation = useMutation({
+        mutationFn: async (id: string) => {
+            await fetch("/api/notifications", {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id }),
+            });
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey });
+        },
+    });
+
+    const unreadCount = data?.filter((n: any) => !n.isRead).length ?? 0;
+
+    return {
+        notifications: data || [],
+        isLoading,
+        unreadCount,
+        markAsRead: markAsReadMutation.mutate,
+    };
+}

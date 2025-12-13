@@ -17,10 +17,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sidebar } from "./sidebar";
 import { useUser } from "@/context/userContext";
+import { useNotifications } from "@/hooks/useShared";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export function Header({ pageTitle }: { pageTitle: string }) {
 	const [open, setOpen] = useState(false);
 	const { userData, logout } = useUser();
+
+    // Determine User ID based on Role
+    const userId = userData?.role === "ADMIN" ? userData?.admin?.id : userData?.student?.id;
+    // @ts-ignore - Role type mismatch fix
+    const role = userData?.role as "ADMIN" | "STUDENT";
+
+    const { notifications, unreadCount, markAsRead } = useNotifications(userId, role);
 
 	return (
 		<header className="flex justify-between items-center py-4 px-4 md:px-6 bg-background/80 shadow-sm">
@@ -64,16 +74,40 @@ export function Header({ pageTitle }: { pageTitle: string }) {
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="relative">
                             <Bell className="text-gray-500" />
+                            {unreadCount > 0 && (
+                                <Badge className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 bg-red-500 text-[10px] rounded-full">
+                                    {unreadCount}
+                                </Badge>
+                            )}
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-80">
+                    <DropdownMenuContent align="end" className="w-80 max-h-96 overflow-y-auto">
                         <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <div className="p-4 text-center text-sm text-gray-500">
-                            No new notifications
-                        </div>
+                        {notifications.length > 0 ? (
+                            notifications.map((n: any) => (
+                                <DropdownMenuItem 
+                                    key={n.id} 
+                                    className={cn("cursor-pointer flex flex-col items-start p-3", !n.isRead && "bg-muted/50")}
+                                    onClick={() => !n.isRead && markAsRead(n.id)}
+                                >
+                                    <div className="flex justify-between w-full">
+                                        <span className="font-semibold text-sm">{n.title}</span>
+                                        {!n.isRead && <span className="h-2 w-2 rounded-full bg-blue-500" />}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{n.message}</p>
+                                    <span className="text-[10px] text-gray-400 mt-2 self-end">
+                                        {new Date(n.createdAt).toLocaleDateString()}
+                                    </span>
+                                </DropdownMenuItem>
+                            ))
+                        ) : (
+                            <div className="p-4 text-center text-sm text-gray-500">
+                                No new notifications
+                            </div>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
 

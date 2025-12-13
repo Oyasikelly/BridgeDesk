@@ -1,12 +1,10 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/db";
 
 export async function GET(req: Request) {
 	try {
 		const { searchParams } = new URL(req.url);
-		const studentId = searchParams.get("studentId");
+		const studentId = searchParams.get("studentId"); // This is likely the PK (cuid)
 
 		if (!studentId) {
 			return NextResponse.json(
@@ -17,7 +15,7 @@ export async function GET(req: Request) {
 
 		// ✅ Fetch all complaints for the student
 		const complaints = await prisma.complaint.findMany({
-			where: { student: { userId: studentId } },
+			where: { studentId }, // Optimized: query by FK directly
 			select: { status: true, dateSubmitted: true },
 			orderBy: { dateSubmitted: "asc" },
 		});
