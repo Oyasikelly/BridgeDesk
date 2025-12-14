@@ -151,13 +151,15 @@ export async function POST(req: NextRequest) {
             });
 
             // Notify Student
+            const notificationPayload = {
+                studentId: studentId,
+                title: `New Message from ${senderAdmin?.fullName || "Admin"}`,
+                message: message ? (message.length > 60 ? message.substring(0, 60) + "..." : message) : "You received a file attachment.",
+                link: `/student/chat-with-admin?complaintId=${activeComplaintId}`
+            };
+
             await prisma.notification.create({
-                data: {
-                    studentId: studentId,
-                    title: `New Message from ${senderAdmin?.fullName || "Admin"}`,
-                    message: message ? (message.length > 60 ? message.substring(0, 60) + "..." : message) : "You received a file attachment.",
-                    link: `/student/chat-with-admin?complaintId=${activeComplaintId}`
-                }
+                data: notificationPayload
             });
 
 			return NextResponse.json({
