@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db";
 import { createClient } from "@supabase/supabase-js";
 
@@ -41,7 +42,7 @@ export async function GET(req: NextRequest) {
 
 	// ... inside component
         const whereClause = {
-            organizationId: user.organizationId
+            organization: { id: user.organizationId }
         };
 		const categories = await prisma.category.findMany({
             where: whereClause,
@@ -95,7 +96,7 @@ export async function POST(req: NextRequest) {
         const createData = {
             name,
             description,
-            organizationId: user.organizationId
+            organization: { connect: { id: user.organizationId } }
         };
 		const category = await prisma.category.create({
 			data: createData
