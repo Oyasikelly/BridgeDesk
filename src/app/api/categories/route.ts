@@ -40,10 +40,11 @@ export async function GET(req: NextRequest) {
 		const includeAdmins = searchParams.get("includeAdmins") === "true";
 
 	// ... inside component
+        const whereClause = {
+            organizationId: user.organizationId
+        };
 		const categories = await prisma.category.findMany({
-            where: {
-                organizationId: user.organizationId
-            },
+            where: whereClause,
 			orderBy: { name: "asc" },
 			include: includeAdmins
 				? {
@@ -91,12 +92,13 @@ export async function POST(req: NextRequest) {
 		}
 
     // ... inside component
+        const createData = {
+            name,
+            description,
+            organizationId: user.organizationId
+        };
 		const category = await prisma.category.create({
-			data: {
-				name,
-				description,
-				organizationId: user.organizationId
-			}
+			data: createData
 		});
 
 		return NextResponse.json({ category }, { status: 201 });
