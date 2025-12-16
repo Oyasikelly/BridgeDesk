@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useCategories } from "@/hooks/useComplaintsApi";
 
 interface Category {
 	id: string;
@@ -19,27 +19,8 @@ export default function SidebarCategories({
 	onSelectCategory,
 	selectedCategoryId,
 }: SidebarCategoriesProps) {
-	const [categories, setCategories] = useState<Category[]>([]);
-	const [loading, setLoading] = useState(true);
-
-	useEffect(() => {
-		async function fetchCategories() {
-			try {
-				const res = await fetch("/api/categories");
-				const data = await res.json();
-
-				if (!res.ok)
-					throw new Error(data.error || "Failed to fetch categories");
-				setCategories(data.categories || []);
-			} catch (error) {
-				console.error("Error fetching categories:", error);
-			} finally {
-				setLoading(false);
-			}
-		}
-
-		fetchCategories();
-	}, []);
+	const { data, isLoading: loading } = useCategories();
+    const categories = data?.categories || [];
 
 	return (
 		<aside className="w-64 border-r bg-gray-50 dark:bg-primary-foreground h-[85vh] overflow-y-auto rounded-l-xl">
@@ -64,7 +45,7 @@ export default function SidebarCategories({
 						No categories available
 					</p>
 				) : (
-					categories.map((cat) => (
+					categories.map((cat: Category) => (
 						<button
 							key={cat.id}
 							onClick={() => onSelectCategory(cat)}

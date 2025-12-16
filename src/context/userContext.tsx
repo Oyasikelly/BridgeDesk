@@ -304,7 +304,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
 			handlePostLoginRedirection,
 			setUserData,
 		}),
-		[userData, loading, refreshUserData, handlePostLoginRedirection]
+		[userData, loading, refreshUserData, handlePostLoginRedirection, logout]
 	);
 
 	return <UserContext.Provider value={value}>{children}</UserContext.Provider>;

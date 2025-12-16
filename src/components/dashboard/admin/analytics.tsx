@@ -28,34 +28,14 @@ import { Spinner } from "@/components/ui/spinner";
 
 const COLORS = ["#2563eb", "#22c55e", "#eab308", "#ef4444"];
 
-export default function AdminAnalytics() {
-	const [loading, setLoading] = useState(true);
-	const [data, setData] = useState<{
-		totalComplaints: number;
-		resolvedCount: number;
-		pendingCount: number;
-		activeStudents: number;
-		rejectedCount: number;
-		complaintStats: { name: string; value: number }[];
-		monthlyData: { month: string; complaints: number }[];
-		departmentData: { name: string; complaints: number }[];
-	} | null>(null);
+import { useAdmin } from "@/hooks/useAdmin";
 
-	useEffect(() => {
-		const fetchData = async () => {
-			try {
-				const res = await fetch("/api/admin/analytics");
-				const result = await res.json();
-				console.log("Analytics data:", result);
-				setData(result);
-			} catch (error) {
-				console.error("Error loading analytics:", error);
-			} finally {
-				setLoading(false);
-			}
-		};
-		fetchData();
-	}, []);
+export default function AdminAnalytics() {
+    const { useAnalytics } = useAdmin();
+    const { data, isLoading: loading, error } = useAnalytics();
+
+    // Re-shape data if necessary or use directly if hook returns compatible shape.
+    // The previous code expected specific shape, ensuring useAdmin matches it.
 
 	if (loading) {
 		return (

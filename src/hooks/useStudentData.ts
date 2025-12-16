@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useUser } from "@/context/userContext";
 import { supabase } from "@/lib/supabase";
 
@@ -161,10 +161,13 @@ export interface StudentDashboardData {
 			title: string;
 			name: string;
 			description: string;
+			icon: string;
+			earnedAt: string;
 		}>;
 		badges: Array<{
 			name: string;
 			description: string;
+			icon?: string;
 		}>;
 		analytics: {
 			totalQuizzes: number;
@@ -177,75 +180,44 @@ export interface StudentDashboardData {
 
 export function useStudentData() {
 	const { userData, loading: userLoading } = useUser();
-	const [data, setData] = useState<StudentDashboardData | null>(null);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+    const queryClient = useQueryClient();
 
-	const fetchStudentData = async () => {
-		try {
-			setLoading(true);
-			setError(null);
+    const fetchStudentData = async (): Promise<StudentDashboardData> => {
+        // Get the current session from Supabase
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
 
-			// Get the current session from Supabase
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
+        if (!session?.access_token) {
+            throw new Error("No authentication token available");
+        }
 
-			if (!session?.access_token) {
-				throw new Error("No authentication token available");
-			}
+        const response = await fetch("/api/student/dashboard-data", {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${session.access_token}`,
+            },
+        });
 
-			const response = await fetch("/api/student/dashboard-data", {
-				method: "GET",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${session.access_token}`,
-				},
-			});
+        if (!response.ok) {
+            throw new Error("Failed to fetch student data");
+        }
 
-			if (!response.ok) {
-				throw new Error("Failed to fetch student data");
-			}
+        return await response.json();
+    };
 
-			const studentData = await response.json();
-			setData(studentData);
-		} catch (err) {
-			console.error("Error fetching student data:", err);
-			setError(
-				err instanceof Error ? err.message : "Failed to fetch student data"
-			);
-		} finally {
-			setLoading(false);
-		}
-	};
-
-	const refreshData = () => {
-		fetchStudentData();
-	};
-
-	const hasInitialized = useRef(false);
-	const lastUserId = useRef<string | null>(null);
-
-	useEffect(() => {
-		// Only fetch if user ID actually changed and not already initialized
-		if (
-			userData?.id &&
-			userData?.role === "STUDENT" &&
-			!userLoading &&
-			userData.id !== lastUserId.current
-		) {
-			lastUserId.current = userData.id;
-			if (!hasInitialized.current) {
-				hasInitialized.current = true;
-			}
-			fetchStudentData();
-		}
-	}, [userData?.id, userData?.role, userLoading]);
+    const { data, isLoading, error } = useQuery({
+        queryKey: ["studentData", userData?.id],
+        queryFn: fetchStudentData,
+        enabled: !!userData?.id && userData.role === "STUDENT" && !userLoading,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+    });
 
 	return {
-		data,
-		loading: loading || userLoading,
-		error,
-		refreshData,
+		data: data || null,
+		loading: isLoading || userLoading,
+		error: /** @type {string | null} */ (error instanceof Error ? error.message : (error as string | null)),
+		refreshData: () => queryClient.invalidateQueries({ queryKey: ["studentData"] }),
 	};
 }

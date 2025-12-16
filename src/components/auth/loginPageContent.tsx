@@ -22,16 +22,15 @@ import {
 	Loader2,
 	ArrowLeft,
 } from "lucide-react";
-import { loginUser } from "@/lib/auth";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/hooks/useAuth"; // Updated import
 import { toast } from "react-hot-toast";
 import { useSearchParams } from "next/navigation";
 
 export default function LoginPageContent() {
-	const { setUser } = useAuth();
+	const { login } = useAuth();
 	const searchParams = useSearchParams();
+    const isLoading = login.isPending;
 	// const [activeTab, setActiveTab] = useState<"student" | "teacher">("student");
-	const [isLoading, setIsLoading] = useState(false);
 	const [showPassword, setShowPassword] = useState(false);
 	const [formData, setFormData] = useState({
 		email: "",
@@ -74,26 +73,12 @@ export default function LoginPageContent() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!validateForm()) return;
-		setIsLoading(true);
 
-		try {
-			// STRICT ROLE VALIDATION: Only allow login if selected role matches user's actual role
-			const response = await loginUser({
-				email: formData.email,
-				password: formData.password,
-			});
-			setUser(response.user);
-			toast.success(`Welcome back, ${response.user.name}!`);
-			// The redirect will be handled automatically by AuthContext
-		} catch (err: unknown) {
-			const errorMessage =
-				err instanceof Error
-					? err.message
-					: "Invalid email or password. Please try again.";
-			toast.error(errorMessage);
-		} finally {
-			setIsLoading(false);
-		}
+		await login.mutateAsync({
+			email: formData.email,
+			password: formData.password,
+		});
+		// Redirect handled in useAuth onSuccess or AuthContext
 	};
 
 	return (

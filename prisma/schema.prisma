@@ -43,6 +43,7 @@ model Organization {
   slug             Boolean      @default(true)
   subscriptionPlan Boolean      @default(true)
   departments      Department[]
+  categories       Category[]
   users            User[]
 
   @@map("organizations")
@@ -168,6 +169,7 @@ model Notification {
   createdAt DateTime         @default(now())
   adminId   String?
   studentId String?
+  link      String?
   admin     Admin?           @relation(fields: [adminId], references: [id])
   student   Student?         @relation(fields: [studentId], references: [id])
 
@@ -204,15 +206,18 @@ model AdminAnalytics {
 }
 
 model Category {
-  id          String      @id @default(cuid())
-  name        String      @unique
-  description String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  adminId     String?
-  admin       Admin?      @relation(fields: [adminId], references: [id])
-  complaints  Complaint[]
+  id             String       @id @default(cuid())
+  name           String
+  description    String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  adminId        String?
+  organizationId String?
+  admin          Admin?       @relation(fields: [adminId], references: [id])
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  complaints     Complaint[]
 
+  @@unique([name, organizationId])
   @@map("categories")
 }
 

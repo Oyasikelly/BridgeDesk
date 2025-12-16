@@ -90,6 +90,29 @@ export async function POST(req: NextRequest) {
 				},
 			});
 
+            // ✅ Create Notification with Name & Link
+            if (senderRole === "STUDENT") {
+                const sender = await prisma.student.findUnique({ where: { id: senderId }, select: { fullName: true } });
+                await prisma.notification.create({
+                    data: {
+                        adminId: receiverId,
+                        title: `New Message from ${sender?.fullName || "Student"}`,
+                        message: message ? (message.length > 50 ? message.substring(0, 50) + "..." : message) : "New file attachment sent.",
+                        link: `/admin/chat-with-student?studentId=${senderId}&complaintId=${activeComplaintId}`
+                    }
+                });
+            } else {
+                const sender = await prisma.admin.findUnique({ where: { id: senderId }, select: { fullName: true } });
+                await prisma.notification.create({
+                    data: {
+                        studentId: receiverId,
+                        title: `New Message from ${sender?.fullName || "Admin"}`,
+                        message: message ? (message.length > 50 ? message.substring(0, 50) + "..." : message) : "New file attachment sent.",
+                        link: `/student/chat-with-admin?complaintId=${activeComplaintId}`
+                    }
+                });
+            }
+
 			return NextResponse.json({ message: newMessage }, { status: 201 });
 		}
 

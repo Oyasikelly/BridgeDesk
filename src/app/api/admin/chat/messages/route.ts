@@ -3,6 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "@/lib/db";
 import { v4 as uuidv4 } from "uuid";
 import cloudinary from "@/lib/cloudinary";
+
 export async function GET(req: Request) {
 	try {
 		const { searchParams } = new URL(req.url);
@@ -35,7 +36,7 @@ export async function GET(req: Request) {
 		}
 
 		// ✅ Fetch messages under this complaint
-		const messages = await prisma.chatMessage.findMany({
+		const rawMessages = await prisma.chatMessage.findMany({
 			where: { complaintId },
 			include: {
 				senderAdmin: true,
@@ -43,6 +44,11 @@ export async function GET(req: Request) {
 			},
 			orderBy: { timestamp: "asc" },
 		});
+
+        const messages = rawMessages.map((msg) => ({
+            ...msg,
+            senderType: msg.senderAdminId ? "ADMIN" : "STUDENT",
+        }));
 
 		return NextResponse.json(messages);
 	} catch (error) {
@@ -138,7 +144,28 @@ export async function POST(req: NextRequest) {
 				},
 			});
 
-			return NextResponse.json({ message: newMessage }, { status: 201 });
+            // Fetch Admin Name
+            const senderAdmin = await prisma.admin.findUnique({
+                where: { id: adminId },
+                select: { fullName: true }
+            });
+
+            // Notify Student
+            const notificationPayload = {
+                studentId: studentId,
+                title: `New Message from ${senderAdmin?.fullName || "Admin"}`,
+                message: message ? (message.length > 60 ? message.substring(0, 60) + "..." : message) : "You received a file attachment.",
+                link: `/student/chat-with-admin?complaintId=${activeComplaintId}`
+            };
+
+            await prisma.notification.create({
+                data: notificationPayload
+            });
+
+			return NextResponse.json({
+                ...newMessage,
+                senderType: "ADMIN"
+            }, { status: 201 });
 		}
 
 		// ❌ Unsupported request
