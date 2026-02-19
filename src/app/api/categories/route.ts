@@ -40,9 +40,8 @@ export async function GET(req: NextRequest) {
 		const { searchParams } = new URL(req.url);
 		const includeAdmins = searchParams.get("includeAdmins") === "true";
 
-	// ... inside component
         const whereClause = {
-            organization: { id: user.organizationId }
+            organizationId: user.organizationId
         };
 		const categories = await prisma.category.findMany({
             where: whereClause,
@@ -70,46 +69,51 @@ export async function GET(req: NextRequest) {
 	}
 }
 
-// POST → Create a new category (Scoped to Organization, SUPER_ADMIN only)
+// POST → Create a new category
 export async function POST(req: NextRequest) {
-	try {
+    try {
         const user = await getAuthenticatedUser(req);
         if (!user || !user.organizationId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         
-        // Strict Role Check: Only SUPER_ADMIN
         if (user.role !== "SUPER_ADMIN") {
-             return NextResponse.json({ error: "Forbidden: Super Admin only" }, { status: 403 });
+            return NextResponse.json({ error: "Forbidden: Super Admin only" }, { status: 403 });
         }
 
-		const { name, description } = await req.json();
+        const { name, description } = await req.json();
 
-		if (!name) {
-			return NextResponse.json(
-				{ error: "Name is required" },
-				{ status: 400 }
-			);
-		}
+        if (!name) {
+            return NextResponse.json({ error: "Category name is required" }, { status: 400 });
+        }
 
-    // ... inside component
-        const createData = {
-            name,
-            description,
-            organization: { connect: { id: user.organizationId } }
-        };
-		const category = await prisma.category.create({
-			data: createData
-		});
+        // Check if category already exists in this org
+        const existing = await prisma.category.findUnique({
+            where: {
+                name_organizationId: {
+                    name,
+                    organizationId: user.organizationId
+                }
+            }
+        });
 
-		return NextResponse.json({ category }, { status: 201 });
-	} catch (error) {
-		console.error("Error creating category:", error);
-		return NextResponse.json(
-			{ error: "Failed to create category" },
-			{ status: 500 }
-		);
-	}
+        if (existing) {
+            return NextResponse.json({ error: "Category already exists" }, { status: 409 });
+        }
+
+        const category = await prisma.category.create({
+            data: {
+                name,
+                description,
+                organizationId: user.organizationId
+            }
+        });
+
+        return NextResponse.json({ category }, { status: 201 });
+    } catch (error) {
+        console.error("Error creating category:", error);
+        return NextResponse.json({ error: "Failed to create category" }, { status: 500 });
+    }
 }
 
 // PATCH → Assign Admin to Category (Scoped to Organization)
@@ -123,11 +127,11 @@ export async function PATCH(req: NextRequest) {
              return NextResponse.json({ error: "Forbidden: Super Admin only" }, { status: 403 });
         }
 
-		const { categoryId, adminId } = await req.json();
+		const { categoryId, adminId, action } = await req.json();
 
-		if (!categoryId) {
+		if (!categoryId || !adminId) {
 			return NextResponse.json(
-				{ error: "Category ID is required" },
+				{ error: "Category ID and Admin ID are required" },
 				{ status: 400 }
 			);
 		}
@@ -141,11 +145,13 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: "Category not found or access denied" }, { status: 404 });
         }
 
-		// Update the category
+		// Update the category using many-to-many connect/disconnect
 		const category = await prisma.category.update({
 			where: { id: categoryId },
 			data: {
-				adminId: adminId || null, // Allow unassigning by passing null
+				admin: action === "disconnect" 
+                    ? { disconnect: { id: adminId } }
+                    : { connect: { id: adminId } }
 			},
 		});
 

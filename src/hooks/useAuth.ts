@@ -23,7 +23,11 @@ export function useAuth() {
 					: "/admin/complete-profile";
 				router.push(path);
 			} else {
-				const path = role === "STUDENT" ? "/student" : "/admin";
+				const path = role === "STUDENT" 
+					? "/student" 
+					: role === "SUPER_ADMIN" 
+						? "/super-admin" 
+						: "/admin";
 				router.push(path);
 			}
 		},

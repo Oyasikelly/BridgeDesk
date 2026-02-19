@@ -53,6 +53,13 @@ export const adminLinks = [
 	{ label: "Settings", icon: Settings, url: "/admin/settings" },
 ];
 
+export const superAdminLinks = [
+	{ label: "Dashboard", icon: Home, url: "/super-admin" },
+	{ label: "Categories", icon: ClipboardList, url: "/super-admin/categories" },
+	{ label: "Organization", icon: Users, url: "/super-admin/organization" },
+	{ label: "Settings", icon: Settings, url: "/super-admin/settings" },
+];
+
 // ... inside Sidebar
 export function Sidebar() {
 	const { userData } = useUser();
@@ -69,7 +76,13 @@ export function Sidebar() {
     const { data: adminStats, isLoading: adminLoading } = useAdminComplaints(userData?.admin?.id);
     const totalComplaints = adminStats?.complaints || []; 
 
-	const activeLinks = userData?.role === "ADMIN" ? adminLinks : studentLinks;
+	const role = userData?.role?.toUpperCase();
+	const activeLinks = role === "SUPER_ADMIN" 
+		? superAdminLinks 
+		: role === "STUDENT" 
+			? studentLinks 
+			: adminLinks;
+			
 	const pathname = usePathname();
     
     const loading = studentLoading || adminLoading;
@@ -92,8 +105,13 @@ export function Sidebar() {
 						BridgeDeck<span className="text-primary">.</span>
 					</h1>
 
-					{/* Optional Overview */}
-					{userData?.role === "ADMIN" ? (
+					{/* Role-based Overview */}
+					{role === "SUPER_ADMIN" ? (
+						<div className="bg-gradient-to-r from-purple-500/40 to-purple-600 p-4 rounded-xl text-center mb-6">
+							<p className="text-sm opacity-80">System Control</p>
+							<h2 className="text-lg font-bold italic tracking-wider">SUPER ADMIN</h2>
+						</div>
+					) : role !== "STUDENT" ? (
 						<div className="bg-gradient-to-r from-primary/40 to-primary p-4 rounded-xl text-center mb-6">
 							<p className="text-sm opacity-80">Active Complaints</p>
 							<h2 className="text-2xl font-bold">{totalComplaints.length}</h2>

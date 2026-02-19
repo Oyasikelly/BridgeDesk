@@ -1,6 +1,15 @@
 // types/auth.ts
 
-export type UserRole = "STUDENT" | "TEACHER" | "ADMIN" | "SUPER_ADMIN";
+export type UserRole =
+	| "STUDENT"
+	| "TEACHER"
+	| "ADMIN"
+	| "SUPER_ADMIN"
+	| "MODERATOR"
+	| "OFFICER"
+	| "HOD"
+	| "DEAN"
+	| "STAFF";
 
 export interface StudentData {
 	id: string;

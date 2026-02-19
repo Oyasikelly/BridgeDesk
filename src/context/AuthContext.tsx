@@ -36,7 +36,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		switch (role) {
 			case "STUDENT":
 				return "/student";
+			case "SUPER_ADMIN":
+				return "/super-admin";
 			case "ADMIN":
+			case "MODERATOR":
+			case "OFFICER":
+			case "HOD":
+			case "DEAN":
+			case "STAFF":
 				return "/admin";
 			default:
 				return "/login";
