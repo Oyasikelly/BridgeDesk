@@ -41,7 +41,12 @@ export async function GET(
 			role: userProfile.role.toUpperCase() as
 				| "STUDENT"
 				| "ADMIN"
-				| "SUPER_ADMIN",
+				| "SUPER_ADMIN"
+				| "MODERATOR"
+				| "OFFICER"
+				| "HOD"
+				| "DEAN"
+				| "STAFF",
 			createdAt: userProfile.createdAt,
 			updatedAt: userProfile.updatedAt,
 			profileComplete,

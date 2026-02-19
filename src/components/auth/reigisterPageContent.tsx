@@ -110,7 +110,8 @@ export default function RegisterPageContent() {
 		if (!formData.organizationId) {
 			toast.error("Please select a school");
 			return false;
-		} else if (!formData.AdminRegistrationCode && formData.role === "ADMIN") {
+		}
+		if (formData.role !== "STUDENT" && !formData.AdminRegistrationCode) {
 			toast.error("Please enter your Admin Registration Code");
 			return false;
 		}
@@ -120,25 +121,24 @@ export default function RegisterPageContent() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!validateForm()) return;
-		if (
-			process.env.ADMIN_REGISTRATION_PASSWORD !==
-				formData.AdminRegistrationCode &&
-			formData.role === "ADMIN"
-		) {
-			toast.error("Invalid Admin Registration Code");
-			return;
+		
+		if (formData.role !== "STUDENT") {
+			if (process.env.ADMIN_REGISTRATION_PASSWORD !== formData.AdminRegistrationCode) {
+				toast.error("Invalid Admin Registration Code");
+				return;
+			}
 		}
 
 		await register.mutateAsync({
 			name: formData.name,
 			email: formData.email,
 			password: formData.password,
-			role: formData.role as "STUDENT" | "ADMIN",
+			role: formData.role as any, // eslint-disable-line @typescript-eslint/no-explicit-any
 			organizationId: formData.organizationId,
 		});
 		
 		router.push(
-				"/login?message=Please check your email to confirm your account before logging in."
+				"/login?message=Registration successful! Please check your email to confirm your account."
 		);
 	};
 
@@ -233,6 +233,29 @@ export default function RegisterPageContent() {
 										</TabsTrigger>
 									</TabsList>
 								</Tabs>
+
+								{formData.role !== "STUDENT" && (
+									<div className="space-y-2">
+										<Label htmlFor="specificRole">Specific Role</Label>
+										<Select
+											value={formData.role}
+											onValueChange={(val) => handleInputChange("role", val)}
+										>
+											<SelectTrigger>
+												<SelectValue placeholder="Select specific role" />
+											</SelectTrigger>
+											<SelectContent>
+												<SelectItem value="ADMIN">General Admin</SelectItem>
+												<SelectItem value="MODERATOR">Moderator</SelectItem>
+												<SelectItem value="OFFICER">Officer</SelectItem>
+												<SelectItem value="HOD">Head of Dept (HOD)</SelectItem>
+												<SelectItem value="DEAN">Dean</SelectItem>
+												<SelectItem value="STAFF">Staff</SelectItem>
+												<SelectItem value="SUPER_ADMIN">Super Admin</SelectItem>
+											</SelectContent>
+										</Select>
+									</div>
+								)}
 
 								<form
 									onSubmit={handleSubmit}

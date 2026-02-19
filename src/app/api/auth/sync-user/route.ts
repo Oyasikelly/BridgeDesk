@@ -62,7 +62,8 @@ export async function POST(request: NextRequest) {
 					lastLogin: userProfile.lastLogin,
 				},
 			});
-		} else if (role === "ADMIN") {
+		} else {
+			// All other roles are administrative
 			await prisma.admin.create({
 				data: {
 					userId,
@@ -71,6 +72,7 @@ export async function POST(request: NextRequest) {
 					username: email,
 					lastLogin: userProfile.lastLogin,
 					passwordHash,
+					role: role.toUpperCase() as Role,
 				},
 			});
 		}

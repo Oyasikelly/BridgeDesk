@@ -80,7 +80,7 @@ model Admin {
   activityLogs      ActivityLog[]
   analytics         AdminAnalytics?
   user              User            @relation(fields: [userId], references: [id])
-  categories        Category[]
+  categories        Category[]      @relation("AdminCategories")
   messagesReceived  ChatMessage[]   @relation("AdminReceivedMessages")
   messagesSent      ChatMessage[]   @relation("AdminSentMessages")
   complaintsHandled Complaint[]
@@ -211,9 +211,8 @@ model Category {
   description    String?
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
-  adminId        String?
   organizationId String?
-  admin          Admin?       @relation(fields: [adminId], references: [id])
+  admins         Admin[]      @relation("AdminCategories")
   organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   complaints     Complaint[]
 
@@ -225,6 +224,11 @@ enum Role {
   ADMIN
   SUPER_ADMIN
   STUDENT
+  MODERATOR
+  OFFICER
+  HOD
+  DEAN
+  STAFF
 }
 
 enum ComplaintStatus {
