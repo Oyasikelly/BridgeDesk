@@ -47,10 +47,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 		async (user: User) => {
 			// Check profile completion first
 			try {
-				const response = await fetch(`/api/profile/complete?userId=${user.id}`);
-				const data = await response.json();
+				// Optimization: Use already fetched profileComplete status if available
+				let isComplete = user.profileComplete;
+				
+				if (isComplete === undefined) {
+					console.log("Profile completion status unknown, checking via API...");
+					const response = await fetch(`/api/profile/complete?userId=${user.id}`);
+					const data = await response.json();
+					isComplete = data.isComplete;
+				}
 
-				if (!data.isComplete) {
+				if (!isComplete) {
 					// Profile incomplete, redirect to complete-profile page
 					const completeProfilePath =
 						user.role === "STUDENT"

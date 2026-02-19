@@ -68,7 +68,7 @@ export async function loginUser(
 	credentials: LoginCredentials
 ): Promise<AuthResponse> {
 	try {
-		console.log("Login attempt:", credentials.email, "Role:");
+		console.log("Login attempt:", credentials.email);
 
 		// 1. Authenticate with Supabase
 		const { data, error } = await supabase.auth.signInWithPassword({
@@ -99,19 +99,11 @@ export async function loginUser(
 			const name = metadata.name || data.user.email?.split("@")[0] || "User";
 			const organizationId = metadata.organizationId || ""; // Default organization
 			
-			// Sync user to database
-			try {
-				await syncUserToDatabase(data.user, role, name, organizationId);
-				
-				// Fetch the newly created user profile
-				userProfile = await getUserFromDatabase(data.user.id);
-				
-				if (!userProfile) {
-					throw new Error("Failed to create user profile in database.");
-				}
-			} catch (syncError) {
-				console.error("Error syncing user during login:", syncError);
-				throw new Error("Failed to sync user profile. Please contact support.");
+			// Sync user to database and return the profile immediately
+			userProfile = await syncUserToDatabase(data.user, role, name, organizationId);
+			
+			if (!userProfile) {
+				throw new Error("Failed to create user profile in database.");
 			}
 		}
 		

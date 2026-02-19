@@ -13,7 +13,18 @@ export function useAuth() {
 		onSuccess: (data) => {
 			toast.success("Login successful!");
 			queryClient.setQueryData(["user"], data.user);
-			// Redirect is handled by the component or context usually, but we can do it here if standard
+			
+			// Immediate redirection logic
+			const user = data.user;
+			if (!user.profileComplete) {
+				const path = user.role === "STUDENT" 
+					? "/student/complete-profile" 
+					: "/admin/complete-profile";
+				router.push(path);
+			} else {
+				const path = user.role === "STUDENT" ? "/student" : "/admin";
+				router.push(path);
+			}
 		},
 		onError: (error: Error) => {
 			toast.error(error.message || "Login failed");
