@@ -38,11 +38,10 @@ export async function GET(
 			id: userProfile.id,
 			email: userProfile.email,
 			name: userProfile.name || "User",
-			role: userProfile.role.toLowerCase() as
-				| "student"
-				| "admin"
-				| "admin"
-				| "super_admin",
+			role: userProfile.role.toUpperCase() as
+				| "STUDENT"
+				| "ADMIN"
+				| "SUPER_ADMIN",
 			createdAt: userProfile.createdAt,
 			updatedAt: userProfile.updatedAt,
 			profileComplete,

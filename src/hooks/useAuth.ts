@@ -16,13 +16,14 @@ export function useAuth() {
 			
 			// Immediate redirection logic
 			const user = data.user;
+			const role = user.role.toUpperCase();
 			if (!user.profileComplete) {
-				const path = user.role === "STUDENT" 
+				const path = role === "STUDENT" 
 					? "/student/complete-profile" 
 					: "/admin/complete-profile";
 				router.push(path);
 			} else {
-				const path = user.role === "STUDENT" ? "/student" : "/admin";
+				const path = role === "STUDENT" ? "/student" : "/admin";
 				router.push(path);
 			}
 		},

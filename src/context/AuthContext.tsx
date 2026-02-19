@@ -31,8 +31,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 	// Helper function to get redirect path based on role
 	const getRedirectPath = (user: User) => {
+		const role = user.role.toUpperCase();
 		// Redirect to dashboard based on role
-		switch (user.role) {
+		switch (role) {
 			case "STUDENT":
 				return "/student";
 			case "ADMIN":
@@ -59,8 +60,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 				if (!isComplete) {
 					// Profile incomplete, redirect to complete-profile page
+					const role = user.role.toUpperCase();
 					const completeProfilePath =
-						user.role === "STUDENT"
+						role === "STUDENT"
 							? "/student/complete-profile"
 							: "/admin/complete-profile";
 					console.log(
